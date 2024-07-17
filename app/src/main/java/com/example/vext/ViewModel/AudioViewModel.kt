@@ -1,5 +1,11 @@
-package com.example.vext.ui.audio
+package com.example.vext.ViewModel
 
+import android.content.ContentResolver
+import android.content.Context
+import android.database.ContentObserver
+import android.net.Uri
+import android.os.Handler
+import android.provider.MediaStore
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
@@ -8,12 +14,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.example.vext.data.local.repository.AudioRepository
 import com.example.vext.data.local.model.Audio
+import com.example.vext.data.local.repository.AudioRepository
 import com.example.vext.jetaudio.player.services.JetAudioServiceHandler
 import com.example.vext.jetaudio.player.services.JetAudioState
 import com.example.vext.jetaudio.player.services.PlayerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +38,7 @@ private val audioDummy = Audio(
 class AudioViewModel @Inject constructor(
     private val audioServiceHandler: JetAudioServiceHandler,
     private val repository: AudioRepository,
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     var duration by savedStateHandle.saveable { mutableStateOf(0L) }
@@ -38,11 +46,13 @@ class AudioViewModel @Inject constructor(
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
     var currentSelectedAudio by savedStateHandle.saveable { mutableStateOf(audioDummy) }
-
     var audioList by savedStateHandle.saveable {mutableStateOf(listOf<Audio>())}
 
     private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
+
+    private var contentObserver: ContentObserver? = null
+
 
     init {
         loadAudioData()
@@ -74,6 +84,13 @@ class AudioViewModel @Inject constructor(
             val audio = repository.getAudioData()
             audioList = audio
             setMediaItems()
+            if(contentObserver == null) {
+                contentObserver = context.contentResolver.registerObserver(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                ) {
+                    loadAudioData()
+                }
+            }
         }
     }
 
@@ -92,6 +109,10 @@ class AudioViewModel @Inject constructor(
         }.also {
             audioServiceHandler.setMediaItemList(it)
         }
+    }
+
+    suspend fun deleteAudio (audio: Audio){
+        repository.deleteAudio(audio)
     }
 
     private fun calculateProgressValue(currentProgress: Long) {
@@ -135,8 +156,13 @@ class AudioViewModel @Inject constructor(
                 )
                 progress = uiEvents.newProgress
             }
+
+            is UIEvents.DeleteSelectedAudios -> {
+                deleteAudio(uiEvents.audio)
+            }
         }
     }
+
 
 
     fun formatDuration(duration: Long): String {
@@ -149,14 +175,30 @@ class AudioViewModel @Inject constructor(
         viewModelScope.launch {
             audioServiceHandler.onPlayerEvents(PlayerEvent.Stop)
         }
+        contentObserver?.let {
+            context.contentResolver.unregisterContentObserver(it)
+        }
         super.onCleared()
     }
 
 
 }
 
+private fun ContentResolver.registerObserver(
+    uri: Uri,
+    observer: (selfChange: Boolean) -> Unit
+): ContentObserver {
+    val contentObserver = object : ContentObserver(Handler()) {
+        override fun onChange(selfChange: Boolean) {
+            observer(selfChange)
+        }
+    }
+    registerContentObserver(uri, true, contentObserver)
+    return contentObserver
+}
 
 sealed class UIEvents {
+    data class DeleteSelectedAudios(val audio: Audio) : UIEvents()
     object PlayPause : UIEvents()
     data class SelectedAudioChange(val index: Int) : UIEvents()
     data class SeekTo(val position: Float) : UIEvents()

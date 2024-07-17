@@ -8,6 +8,8 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import com.example.vext.data.local.model.Audio
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ContentResolverHelper @Inject
@@ -35,6 +37,13 @@ constructor(@ApplicationContext val context: Context) {
         return getCursorData()
     }
 
+    fun performDeleteAudio(audio: Audio){
+        context.contentResolver.delete(
+            audio.uri,
+            "${MediaStore.Audio.AudioColumns._ID} = ?",
+            arrayOf(audio.id.toString())
+        )
+    }
 
     private fun getCursorData(): MutableList<Audio> {
         val audioList = mutableListOf<Audio>()
@@ -86,12 +95,7 @@ constructor(@ApplicationContext val context: Context) {
 
                 }
             }
-
-
         }
-
         return audioList
     }
-
-
 }

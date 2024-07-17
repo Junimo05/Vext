@@ -12,4 +12,12 @@ class AudioRepository @Inject constructor(
     suspend fun getAudioData():List<Audio> = withContext(Dispatchers.IO){
         contentResolverHelper.getAudioData()
     }
+
+    suspend fun deleteAudio(audio: Audio) = withContext(Dispatchers.IO){
+        try {
+            contentResolverHelper.performDeleteAudio(audio)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 }

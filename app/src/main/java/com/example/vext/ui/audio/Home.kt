@@ -3,19 +3,42 @@ package com.example.vext.ui.audio
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
@@ -35,16 +58,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.vext.data.local.model.Audio
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
-@SuppressLint("UnrememberedMutableState")
+@SuppressLint("UnrememberedMutableState", "CoroutineCreationDuringComposition")
 @Composable
 fun Home(
     progress: Float,
@@ -52,6 +79,7 @@ fun Home(
     isAudioPlaying: Boolean,
     currentPlayingAudio: Audio,
     audioList: List<Audio>,
+    deleteAudio: (Audio) -> Unit,
     onStart: () -> Unit,
     onItemClick:(Int) -> Unit,
     onNext: () -> Unit,
@@ -65,14 +93,13 @@ fun Home(
         mutableStateOf(false)
     }
     var isRecording by mutableStateOf(false)
-
+    var isPaused by mutableStateOf(false)
     var isInSelectionMode by remember {
         mutableStateOf(false)
     }
     val selectedItems = remember {
-        mutableStateListOf<Long>()
+        mutableStateListOf<Audio>()
     }
-
     val resetSelectionMode = {
         isInSelectionMode = false
         selectedItems.clear()
@@ -97,8 +124,14 @@ fun Home(
         topBar = {
                  if(isInSelectionMode){
                      SelectionModeTopAppBar(
+                         context = context,
                          selectedItems = selectedItems,
-                         resetSelectionMode = resetSelectionMode
+                         resetSelectionMode = resetSelectionMode,
+                         deleteAudio = { items ->
+                             items.forEach { item ->
+                                    deleteAudio(item)
+                             }
+                         }
                      )
                  }else {
                      CenterAlignedTopAppBar(
@@ -121,32 +154,88 @@ fun Home(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                   isRecording = !isRecording
-                        if(isRecording) recorder.start()
-                        else {
-                            recorder.pause()
-                            showAlertDialog = true
-                        }
-                },
-                containerColor = Color(0xFFFF9800),
-                shape = CircleShape,
+            Row(
+                modifier = Modifier.wrapContentSize(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isRecording) {
-                    Row {
+                AnimatedVisibility(
+                    modifier = Modifier
+                        .width(IntrinsicSize.Max),
+                    visible = isRecording,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = timeStampToDuration(recorder.recordingTime.longValue))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        FloatingActionButton(
+                            onClick = {
+                                isRecording = false
+                                recorder.cancel()
+                            },
+                            shape = CircleShape,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        FloatingActionButton(
+                            onClick = {
+                                recorder.pause()
+                                showAlertDialog = true
+                            },
+                            shape = CircleShape,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = null
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
+                FloatingActionButton(
+                    onClick = {
+                        if(!isRecording) {
+                            recorder.start()
+                            isRecording = true
+                        } else {
+                            if(recorder.isPaused) {
+                                recorder.resume()
+                                isPaused = false
+                            } else {
+                                recorder.pause()
+                               isPaused = true
+                            }
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    shape = CircleShape,
+                ) {
+                    if(!isRecording){
                         Icon(
-                            imageVector = Icons.Default.Pause,
+                            imageVector = Icons.Default.Add,
                             contentDescription = null
                         )
-                        Spacer(modifier = Modifier.size(4.dp))
-                        Text(text = timeStampToDuration(recorder.recordingTime.value))
+                    } else {
+                        if(!isPaused) {
+                            Icon(
+                                imageVector = Icons.Default.Pause,
+                                contentDescription = null
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = null
+                            )
+                        }
                     }
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null
-                    )
                 }
             }
         },
@@ -157,15 +246,15 @@ fun Home(
             contentPadding = it
         ) {
             itemsIndexed(audioList){index, audio ->
-                val isSelected = selectedItems.contains(audio.id)
+                val isSelected = selectedItems.contains(audio)
                 ListItem(
                     modifier = Modifier.combinedClickable(
                         onClick = {
                             if (isInSelectionMode) {
                                 if (isSelected) {
-                                    selectedItems.remove(audio.id)
+                                    selectedItems.remove(audio)
                                 } else {
-                                    selectedItems.add(audio.id)
+                                    selectedItems.add(audio)
                                 }
                             } else {
                                 onItemClick(index)
@@ -174,13 +263,13 @@ fun Home(
                         onLongClick = {
                             if (isInSelectionMode) {
                                 if (isSelected) {
-                                    selectedItems.remove(audio.id)
+                                    selectedItems.remove(audio)
                                 } else {
-                                    selectedItems.add(audio.id)
+                                    selectedItems.add(audio)
                                 }
                             } else {
                                 isInSelectionMode = true
-                                selectedItems.add(audio.id)
+                                selectedItems.add(audio)
                             }
                         }
                     ),
@@ -224,10 +313,12 @@ fun Home(
             StopAlertDialog(
                 onSaveRequest = {filename ->
                     showAlertDialog = false
+                    isRecording = false
                     recorder.stop(filename)
                 },
                 onDismissRequest = {
                     showAlertDialog = false
+                    recorder.cancel()
                 }
             )
         }

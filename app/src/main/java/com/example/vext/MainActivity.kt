@@ -17,11 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.vext.jetaudio.player.services.JetAudioService
-import com.example.vext.ui.audio.AudioViewModel
+import com.example.vext.ViewModel.AudioViewModel
 import com.example.vext.ui.audio.Home
-import com.example.vext.ui.audio.UIEvents
+import com.example.vext.ViewModel.UIEvents
 import com.example.vext.ui.theme.VextTheme
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -55,6 +54,7 @@ class MainActivity : ComponentActivity() {
                         isAudioPlaying = audioViewModel.isPlaying,
                         audioList = audioViewModel.audioList,
                         currentPlayingAudio = audioViewModel.currentSelectedAudio,
+                        deleteAudio = { audioViewModel.onUIEvents(UIEvents.DeleteSelectedAudios(it)) },
                         onStart = {
                             audioViewModel.onUIEvents(UIEvents.PlayPause)
                         },
@@ -112,7 +112,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         requestRuntimePermission()
-        audioViewModel.loadAudioData()
     }
 }
 

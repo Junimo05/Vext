@@ -6,6 +6,7 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,8 +26,10 @@ class AndroidAudioRecorder @Inject constructor(
     private var tempFile = File(context.cacheDir, "temp_audio.mp3")
     private var targetUri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     private val scope = CoroutineScope(Dispatchers.Main)
-    var recordingTime = mutableStateOf(0L)
-    private var isPaused: Boolean = false
+    var recordingTime = mutableLongStateOf(0L)
+
+    var isPaused: Boolean = false
+    private var isStop: Boolean = false
 
     private fun createRecorder(): MediaRecorder {
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -35,6 +38,7 @@ class AndroidAudioRecorder @Inject constructor(
     }
 
     override fun start() {
+        isStop = false
         createRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -51,13 +55,15 @@ class AndroidAudioRecorder @Inject constructor(
             while (recorder != null) {
                 delay(1000L)
                 if(!isPaused) {
-                    recordingTime.value += 1000
+                    recordingTime.longValue += 1000
                 }
             }
         }
+
     }
 
     override fun stop(filename: String) {
+        isStop = true
         recorder?.stop()
         recorder?.reset()
         recorder = null
@@ -66,12 +72,27 @@ class AndroidAudioRecorder @Inject constructor(
             delay(1000L)
             reloadData()
         }
-        recordingTime.value = 0
+        recordingTime.longValue = 0
+    }
+
+    fun cancel() {
+        isStop = true
+        recordingTime.longValue = 0
+        recorder?.stop()
+        recorder?.reset()
+        recorder = null
+        tempFile.delete()
     }
 
     fun pause() {
         recorder?.pause()
         isPaused = true
+    }
+
+    fun resume() {
+        isPaused = false
+        recorder?.resume()
+
     }
 
     private fun saveAudioFile(filename: String) {
