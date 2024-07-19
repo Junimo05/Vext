@@ -81,4 +81,9 @@ object MediaModule {
         exoPlayer: ExoPlayer
     ): JetAudioServiceHandler = JetAudioServiceHandler(exoPlayer)
 
+    @Provides
+    @Singleton
+    fun provideTrashBin(){
+
+    }
 }
