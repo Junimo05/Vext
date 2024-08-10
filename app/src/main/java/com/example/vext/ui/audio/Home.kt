@@ -64,11 +64,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.vext.data.local.model.Audio
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.w3c.dom.Text
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState", "CoroutineCreationDuringComposition")
@@ -81,7 +83,7 @@ fun Home(
     audioList: List<Audio>,
     deleteAudio: (Audio) -> Unit,
     onStart: () -> Unit,
-    onItemClick:(Int) -> Unit,
+    onAudioClick:(Int) -> Unit,
     onNext: () -> Unit,
     context: Context,
     reloadData: () -> Unit
@@ -257,7 +259,7 @@ fun Home(
                                     selectedItems.add(audio)
                                 }
                             } else {
-                                onItemClick(index)
+                                onAudioClick(index)
                             }
                         },
                         onLongClick = {
@@ -275,8 +277,13 @@ fun Home(
                     ),
                     headlineContent = {
                         AudioItem(
+                            index = index,
                             audio = audio,
+                            isAudioPlaying = isAudioPlaying,
                             currentPlayingAudio = currentPlayingAudio,
+                            onAudioClick = onAudioClick,
+                            progress = progress,
+                            onProgress = onProgress,
                         )
                         Spacer(modifier = Modifier
                             .size(1.dp)
@@ -318,6 +325,7 @@ fun Home(
                 },
                 onDismissRequest = {
                     showAlertDialog = false
+                    isRecording = false
                     recorder.cancel()
                 }
             )
@@ -364,3 +372,8 @@ fun StopAlertDialog(
     )
 }
 
+@Composable
+@Preview(showBackground = true)
+fun HomePreview(){
+
+}

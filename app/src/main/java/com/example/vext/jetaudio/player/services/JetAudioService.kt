@@ -9,6 +9,7 @@ import com.example.vext.jetaudio.player.notifications.JetAudioNotificationManage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class JetAudioService: MediaSessionService() {
 
     @Inject

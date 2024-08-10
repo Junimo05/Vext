@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
                         onStart = {
                             audioViewModel.onUIEvents(UIEvents.PlayPause)
                         },
-                        onItemClick = {
+                        onAudioClick = {
                             audioViewModel.onUIEvents(UIEvents.SelectedAudioChange(it))
                             startService()
                         },

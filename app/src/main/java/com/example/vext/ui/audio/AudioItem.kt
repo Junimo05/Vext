@@ -1,5 +1,6 @@
 package com.example.vext.ui.audio
 
+import android.widget.Space
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -9,11 +10,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,8 +32,13 @@ import com.example.vext.data.local.model.Audio
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AudioItem(
+    index: Int,
     audio: Audio,
+    isAudioPlaying: Boolean,
     currentPlayingAudio: Audio,
+    progress: Float,
+    onProgress: (Float) -> Unit,
+    onAudioClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ){
     Card(
@@ -39,47 +50,64 @@ fun AudioItem(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
     ) {
-        Row (
-            modifier = modifier
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ){
-            Column(
-                modifier = Modifier
-                    .weight(1f)
+        Column {
+            Row (
+                modifier = modifier
                     .padding(8.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    text = audio.displayName,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleLarge,
-                    overflow = TextOverflow.Clip,
-                    maxLines = 1,
-                    modifier = if(audio == currentPlayingAudio) Modifier.basicMarquee(
-                        animationMode = MarqueeAnimationMode.Immediately,
-                        delayMillis = 1000,
-                    ) else Modifier,
-                    color = if(audio == currentPlayingAudio) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                verticalAlignment = Alignment.CenterVertically,
+            ){
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.clickable {
+                        onAudioClick(index)
+                    }
                 )
-
                 Spacer(modifier = Modifier.size(4.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        text = audio.displayName,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                        overflow = TextOverflow.Clip,
+                        maxLines = 1,
+                        modifier = if(audio == currentPlayingAudio) Modifier.basicMarquee(
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            delayMillis = 1000,
+                        ) else Modifier,
+                        color = if(audio == currentPlayingAudio) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
 
+                    Spacer(modifier = Modifier.size(4.dp))
+
+                    Text(
+                        text = audio.artist,
+                        fontWeight = FontWeight.Normal,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Clip,
+                        color = MaterialTheme.colorScheme.secondary,
+                        maxLines = 1
+                    )
+                }
                 Text(
-                    text = audio.artist,
-                    fontWeight = FontWeight.Normal,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Clip,
+                    text = timeStampToDuration(audio.duration.toLong()),
                     color = MaterialTheme.colorScheme.secondary,
-                    maxLines = 1
                 )
+                Spacer(modifier = Modifier.size(4.dp))
             }
-            Text(
-                text = timeStampToDuration(audio.duration.toLong()),
-                color = MaterialTheme.colorScheme.secondary,
-            )
-            Spacer(modifier = Modifier.size(4.dp))
+//            Spacer(modifier = Modifier.height(4.dp))
+//            Slider(
+//                value = progress,
+//                onValueChange = onProgress,
+//                valueRange = 0f..100f,
+//                modifier = Modifier.weight(1f)
+//            )
         }
     }
 }

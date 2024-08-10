@@ -14,7 +14,6 @@ import java.io.FileOutputStream
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-@AndroidEntryPoint
 @RequiresApi(Build.VERSION_CODES.O)
 class TrashBin(
     context: Context

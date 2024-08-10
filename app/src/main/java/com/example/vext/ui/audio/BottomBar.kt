@@ -69,7 +69,8 @@ fun BottomBarLayer(
                     MediaPlayer(
                         isAudioPlaying = isAudioPlaying,
                         onStart = onStart,
-                        onNext = onNext
+                        onNext = onNext,
+                        audio = audio
                     )
                     Slider(
                         value = progress,
@@ -181,6 +182,7 @@ fun MediaPlayer(
     isAudioPlaying: Boolean,
     onStart: () -> Unit,
     onNext: () -> Unit,
+    audio: Audio?
 ){
     Row (
         verticalAlignment = Alignment.CenterVertically,
@@ -191,7 +193,11 @@ fun MediaPlayer(
         PlayerIconItem(
             icon = if(isAudioPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
         ) {
-            onStart()
+            if (audio != null) {
+                if(audio.title.isNotEmpty()){
+                    onStart()
+                }
+            }
         }
         Spacer(modifier = Modifier.size(4.dp))
         Icon(

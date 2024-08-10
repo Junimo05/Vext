@@ -1,9 +1,9 @@
 package com.example.vext.di
 
 import android.content.Context
+import android.os.Build
 import androidx.annotation.OptIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.runtime.Immutable
+import androidx.annotation.RequiresApi
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
@@ -15,6 +15,7 @@ import androidx.media3.session.SessionCommand
 import com.example.vext.R
 import com.example.vext.jetaudio.player.notifications.JetAudioNotificationManager
 import com.example.vext.jetaudio.player.services.JetAudioServiceHandler
+import com.example.vext.utils.TrashBin
 import com.google.common.collect.ImmutableList
 import dagger.Module
 import dagger.Provides
@@ -81,9 +82,10 @@ object MediaModule {
         exoPlayer: ExoPlayer
     ): JetAudioServiceHandler = JetAudioServiceHandler(exoPlayer)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Provides
     @Singleton
-    fun provideTrashBin(){
-
-    }
+    fun provideTrashBin(
+        @ApplicationContext context: Context
+    ): TrashBin = TrashBin(context)
 }
