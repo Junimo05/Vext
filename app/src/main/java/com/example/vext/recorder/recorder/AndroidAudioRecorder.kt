@@ -5,9 +5,10 @@ import android.content.Context
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,6 +27,8 @@ class AndroidAudioRecorder @Inject constructor(
     private var tempFile = File(context.cacheDir, "temp_audio.mp3")
     private var targetUri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     private val scope = CoroutineScope(Dispatchers.Main)
+
+    private val timerHandler = TimerHandler()
     var recordingTime = mutableLongStateOf(0L)
 
     var isPaused: Boolean = false
@@ -43,6 +46,8 @@ class AndroidAudioRecorder @Inject constructor(
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioEncodingBitRate(16*44100)
+            setAudioSamplingRate(44100)
             setOutputFile(tempFile.absolutePath)
 
             prepare()
@@ -51,11 +56,13 @@ class AndroidAudioRecorder @Inject constructor(
             recorder = this
         }
 
+        timerHandler.start()
+
         scope.launch {
             while (recorder != null) {
-                delay(1000L)
+                delay(10L)
                 if(!isPaused) {
-                    recordingTime.longValue += 1000
+                    recordingTime.longValue = timerHandler.milliseconds
                 }
             }
         }
@@ -73,6 +80,10 @@ class AndroidAudioRecorder @Inject constructor(
             reloadData()
         }
         recordingTime.longValue = 0
+    }
+
+    override fun getAmplitude(): Int {
+        return recorder?.maxAmplitude ?: 0
     }
 
     fun cancel() {
@@ -122,5 +133,25 @@ class AndroidAudioRecorder @Inject constructor(
         while (input.read(buffer).also { read = it } != -1) {
             output?.write(buffer, 0, read)
         }
+    }
+}
+
+class TimerHandler {
+    var milliseconds = 0L
+    private val handler = Handler(Looper.getMainLooper())
+    private val runnable = object : Runnable {
+        override fun run() {
+            milliseconds += 10
+            handler.postDelayed(this, 10)
+        }
+    }
+
+    fun start() {
+        handler.postDelayed(runnable, 10)
+    }
+
+    fun stop() {
+        handler.removeCallbacks(runnable)
+        milliseconds = 0L
     }
 }

@@ -14,12 +14,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.vext.jetaudio.player.services.JetAudioService
 import com.example.vext.ViewModel.AudioViewModel
 import com.example.vext.ui.audio.Home
 import com.example.vext.ViewModel.UIEvents
+import com.example.vext.ui.audio.RecordScreen
 import com.example.vext.ui.theme.VextTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -48,28 +53,42 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.surface,
                 ) {
-                    Home(
-                        progress = audioViewModel.progress,
-                        onProgress = { audioViewModel.onUIEvents(UIEvents.SeekTo(it)) },
-                        isAudioPlaying = audioViewModel.isPlaying,
-                        audioList = audioViewModel.audioList,
-                        currentPlayingAudio = audioViewModel.currentSelectedAudio,
-                        deleteAudio = { audioViewModel.onUIEvents(UIEvents.DeleteSelectedAudios(it)) },
-                        onStart = {
-                            audioViewModel.onUIEvents(UIEvents.PlayPause)
-                        },
-                        onAudioClick = {
-                            audioViewModel.onUIEvents(UIEvents.SelectedAudioChange(it))
-                            startService()
-                        },
-                        onNext = {
-                            audioViewModel.onUIEvents(UIEvents.SeekToNext)
-                        },
-                        context = this,
-                        reloadData = {
-                            audioViewModel.loadAudioData()
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") {
+                            Home(
+                                navController = navController,
+                                progress = audioViewModel.progress,
+                                onProgress = { audioViewModel.onUIEvents(UIEvents.SeekTo(it)) },
+                                isAudioPlaying = audioViewModel.isPlaying,
+                                audioList = audioViewModel.audioList,
+                                currentPlayingAudio = audioViewModel.currentSelectedAudio,
+                                deleteAudio = { audioViewModel.onUIEvents(UIEvents.DeleteSelectedAudios(it)) },
+                                onStart = {
+                                    audioViewModel.onUIEvents(UIEvents.PlayPause)
+                                },
+                                onAudioClick = {
+                                    audioViewModel.onUIEvents(UIEvents.SelectedAudioChange(it))
+                                    startService()
+                                },
+                                onNext = {
+                                    audioViewModel.onUIEvents(UIEvents.SeekToNext)
+                                },
+                                context = LocalContext.current,
+                            )
                         }
-                    )
+
+                        composable("record") {
+                            RecordScreen(
+                                context = LocalContext.current,
+                                reloadData = {
+                                    audioViewModel.loadAudioData()
+                                },
+                                navController = navController
+                            )
+                        }
+
+                    }
                 }
             }
         }
