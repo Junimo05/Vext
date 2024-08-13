@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.FiberManualRecord
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,12 +34,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.vext.R
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
 import kotlinx.coroutines.delay
 
@@ -60,27 +64,6 @@ fun RecordScreen(
     }
     var isRecording by mutableStateOf(false)
     var isPaused by mutableStateOf(false)
-
-    //Amplitudes
-    val amplitudes = remember {
-        mutableStateOf(mutableListOf<Float>())
-    }
-
-    LaunchedEffect(key1 = recorder) {
-        while(!recorder.isPaused){
-            val amplitude = recorder.getAmplitude().toFloat()
-            amplitudes.value.add(amplitude)
-            delay(10)
-        }
-    }
-
-//    val amplitudes = produceState(initialValue = mutableStateListOf<Float>(), producer = {
-//        while (!recorder.isPaused) {
-//            val amplitude = recorder.getAmplitude().toFloat()
-//            value.add(amplitude)
-//            delay(10)
-//        }
-//    })
 
     Scaffold(
         topBar = {
@@ -122,6 +105,13 @@ fun RecordScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Filled.Cancel,
+                        contentDescription = "Cancel",
+                        modifier = Modifier.size(75.dp)
+                    )
+                }
                 IconButton(
                     onClick = {
                         if(!isRecording){
@@ -145,6 +135,13 @@ fun RecordScreen(
                         modifier = Modifier.size(100.dp)
                     )
                 }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Filled.Stop,
+                        contentDescription = "Stop",
+                        modifier = Modifier.size(75.dp)
+                    )
+                }
             }
         }
     ){
@@ -156,7 +153,7 @@ fun RecordScreen(
             Timer(
                 recordingTime = recorder.recordingTime
             )
-            AudioFingerprintDisplay(amplitudes.value)
+            AudioFingerprintDisplay(recorder)
         }
 
         //Save file

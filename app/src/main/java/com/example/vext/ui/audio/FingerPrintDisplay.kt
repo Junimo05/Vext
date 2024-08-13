@@ -1,6 +1,7 @@
 package com.example.vext.ui.audio
 
 import android.annotation.SuppressLint
+import android.graphics.RectF
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,15 +20,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.example.vext.recorder.recorder.AndroidAudioRecorder
+import kotlinx.coroutines.delay
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun AudioFingerprintDisplay(
-    amplitudes: MutableList<Float>,
+    recorder: AndroidAudioRecorder,
     modifier: Modifier = Modifier
 ) {
     val isPlaying by remember { mutableStateOf(false) }
@@ -37,9 +42,33 @@ fun AudioFingerprintDisplay(
     )
 
     //Draw
+    val amplitudes = remember { mutableStateOf(listOf<Float>()) }
     val numberOfMainMarkers = 5
     val numberOfSubMarkers = 3
     var sizeCanvas by remember { mutableStateOf(IntSize.Zero) }
+
+    fun addAmplitudeData(amp: Float) {
+        amplitudes.value = amplitudes.value + amp
+        if(amplitudes.value.size > 100) {
+            amplitudes.value = amplitudes.value.drop(1)
+        }
+    }
+
+    LaunchedEffect(key1 = recorder) {
+        while (true) {
+            while(recorder.isPaused) {
+                delay(100)
+            }
+            val amplitude = recorder.getAmplitude().toFloat()
+            addAmplitudeData(amplitude) //save amplitude for display
+            recorder.amplitudes.add(amplitude) //save amplitude to file
+            delay(100) // Lấy giá trị Amplitude mỗi 100 milliseconds
+
+            if(recorder.isStop) {
+                break
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -84,21 +113,30 @@ fun AudioFingerprintDisplay(
                 }
 
                 //Draw WaveForm
-//                val columnWidth = size.width / 50
-//                val amplitude = size.height / 2
-//                val amplitudesCopy = amplitudeData.getLast(50)
-//
-//                amplitudesCopy.forEachIndexed { index, amp ->
-//                    val rectX = index * columnWidth
-//                    val rectY = amplitude - amp / 32768.0f * amplitude
-//                    val rectHeight = 2 * amp / 32768.0f * amplitude // height of the rectangle is twice the distance from rectY to the bottom of the canvas
-//
-//                    drawRect(
-//                        color = Color.Black,
-//                        topLeft = Offset(rectX, rectY),
-//                        size = androidx.compose.ui.geometry.Size(width = columnWidth, height = rectHeight)
-//                    )
-//                }
+
+                val columnWidth = size.width / 100
+                val amplitudeBase = size.height / 2
+
+                amplitudes.value.forEachIndexed { index, amp ->
+                    val rectX = index * columnWidth
+                    val normalizedAmp = amp / 32768.0f * amplitudeBase
+                    val rectY = amplitudeBase - normalizedAmp
+                    val rectHeight = normalizedAmp // height of the rectangle is the distance from rectY to the bottom of the canvas
+
+                    // Draw rectangle extending upwards
+                    drawRect(
+                        color = Color.Black,
+                        topLeft = Offset(rectX, rectY),
+                        size = Size(width = columnWidth, height = rectHeight)
+                    )
+
+                    // Draw rectangle extending downwards
+                    drawRect(
+                        color = Color.Black,
+                        topLeft = Offset(rectX, amplitudeBase),
+                        size = Size(width = columnWidth, height = rectHeight)
+                    )
+                }
 
                 // Draw the progress line
                 drawLine(

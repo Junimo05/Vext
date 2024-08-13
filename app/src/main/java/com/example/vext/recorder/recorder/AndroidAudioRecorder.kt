@@ -24,15 +24,18 @@ class AndroidAudioRecorder @Inject constructor(
 ): AudioRecorder {
 
     private var recorder: MediaRecorder? = null
+
     private var tempFile = File(context.cacheDir, "temp_audio.mp3")
     private var targetUri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    val amplitudes = mutableListOf<Float>()
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val timerHandler = TimerHandler()
     var recordingTime = mutableLongStateOf(0L)
 
     var isPaused: Boolean = false
-    private var isStop: Boolean = false
+    var isStop: Boolean = false
+
 
     private fun createRecorder(): MediaRecorder {
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -125,6 +128,11 @@ class AndroidAudioRecorder @Inject constructor(
             outputStream?.close()
         }
         tempFile.delete()
+    }
+
+    private fun saveAmplitudesToFile(filename: String){
+        val file = File(context.filesDir, "$filename.amplitudes")
+        file.writeText(amplitudes.joinToString(","))
     }
 
     private fun copyStream(input: InputStream, output: OutputStream?) {

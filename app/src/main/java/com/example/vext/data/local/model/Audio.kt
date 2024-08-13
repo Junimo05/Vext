@@ -3,6 +3,7 @@ package com.example.vext.data.local.model
 import android.net.Uri
 import android.os.Parcelable
 import androidx.recyclerview.widget.DiffUtil
+import androidx.room.Entity
 import kotlinx.parcelize.Parcelize
 import java.net.URI
 
