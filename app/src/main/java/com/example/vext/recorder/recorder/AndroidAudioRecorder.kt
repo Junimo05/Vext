@@ -82,7 +82,7 @@ class AndroidAudioRecorder @Inject constructor(
             delay(1000L)
             reloadData()
         }
-        recordingTime.longValue = 0
+        timerHandler.stop()
     }
 
     override fun getAmplitude(): Int {
@@ -91,7 +91,7 @@ class AndroidAudioRecorder @Inject constructor(
 
     fun cancel() {
         isStop = true
-        recordingTime.longValue = 0
+        timerHandler.stop()
         recorder?.stop()
         recorder?.reset()
         recorder = null

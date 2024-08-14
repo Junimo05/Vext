@@ -1,21 +1,21 @@
 package com.example.vext.data.local.repository
 
-import com.example.vext.data.ContentResolverHelper
 import com.example.vext.data.local.model.Audio
+import com.example.vext.data.local.services.AudioService.AudioLocalService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AudioRepository @Inject constructor(
-    private val contentResolverHelper: ContentResolverHelper
+    private val audioLocalService: AudioLocalService,
 ) {
-    suspend fun getAudioData():List<Audio> = withContext(Dispatchers.IO){
-        contentResolverHelper.getAudioData()
+    suspend fun getAllAudioFilesLocal() = withContext(Dispatchers.IO){
+        audioLocalService.getAllAudioFiles()
     }
 
-    suspend fun deleteAudio(audio: Audio) = withContext(Dispatchers.IO){
+    suspend fun deleteAudioFilesLocal (audio: Audio) = withContext(Dispatchers.IO){
         try {
-            contentResolverHelper.performDeleteAudio(audio)
+            audioLocalService.deleteAudioFile(audio)
         } catch (e: Exception) {
             e.printStackTrace()
         }

@@ -1,7 +1,6 @@
 package com.example.vext.ui.audio
 
 import android.annotation.SuppressLint
-import android.graphics.RectF
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 @SuppressLint("DefaultLocale")
 @Composable
 fun AudioFingerprintDisplay(
+    isRecording: MutableState<Boolean>,
     recorder: AndroidAudioRecorder,
     modifier: Modifier = Modifier
 ) {
@@ -54,18 +55,29 @@ fun AudioFingerprintDisplay(
         }
     }
 
-    LaunchedEffect(key1 = recorder) {
-        while (true) {
-            while(recorder.isPaused) {
-                delay(100)
-            }
-            val amplitude = recorder.getAmplitude().toFloat()
-            addAmplitudeData(amplitude) //save amplitude for display
-            recorder.amplitudes.add(amplitude) //save amplitude to file
-            delay(100) // Lấy giá trị Amplitude mỗi 100 milliseconds
+    fun clearAmplitudeData() {
+        amplitudes.value = listOf()
+    }
 
-            if(recorder.isStop) {
-                break
+    LaunchedEffect(key1 = recorder, key2 = isRecording.value) {
+        when{
+            !isRecording.value -> {
+                clearAmplitudeData()
+            }
+            recorder.isPaused -> {
+                while (true) {
+                    while(recorder.isPaused) {
+                        delay(100)
+                    }
+                    val amplitude = recorder.getAmplitude().toFloat()
+                    addAmplitudeData(amplitude) //save amplitude for display
+                    recorder.amplitudes.add(amplitude) //save amplitude to file
+                    delay(100)
+
+                    if(recorder.isStop) {
+                        break
+                    }
+                }
             }
         }
     }

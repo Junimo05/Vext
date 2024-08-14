@@ -81,7 +81,7 @@ class AudioViewModel @Inject constructor(
 
     fun loadAudioData() {
         viewModelScope.launch {
-            val audio = repository.getAudioData()
+            val audio = repository.getAllAudioFilesLocal()
             audioList = audio
             setMediaItems()
             if(contentObserver == null) {
@@ -112,7 +112,7 @@ class AudioViewModel @Inject constructor(
     }
 
     suspend fun deleteAudio (audio: Audio){
-        repository.deleteAudio(audio)
+        repository.deleteAudioFilesLocal(audio)
     }
 
     private fun calculateProgressValue(currentProgress: Long) {

@@ -2,19 +2,19 @@ package com.example.vext.data
 
 import android.content.Context
 import androidx.room.Database
-import androidx.room.DatabaseConfiguration
-import androidx.room.InvalidationTracker
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteOpenHelper
+import com.example.vext.data.local.entity.AudioDes
 
 
 @Database(entities = [AudioDes::class], version = 1)
-abstract class Database : RoomDatabase() {
+abstract class AppDatabase : RoomDatabase(
+
+) {
     abstract fun audioDao(): AudioDao
 
     companion object {
-        const val DATABASE_NAME = "audio_db"
+        const val DATABASE_NAME = "mydb"
         @Volatile
         private var INSTANCE: RoomDatabase? = null
 
@@ -28,7 +28,7 @@ abstract class Database : RoomDatabase() {
             synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    RoomDatabase::class.java,
+                    AppDatabase::class.java,
                     DATABASE_NAME
                 ).build()
                 INSTANCE = instance

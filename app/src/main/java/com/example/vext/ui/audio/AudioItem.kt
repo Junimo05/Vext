@@ -1,6 +1,10 @@
 package com.example.vext.ui.audio
 
 import android.widget.Space
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -79,7 +83,7 @@ fun AudioItem(
                         maxLines = 1,
                         modifier = if(audio == currentPlayingAudio) Modifier.basicMarquee(
                             animationMode = MarqueeAnimationMode.Immediately,
-                            delayMillis = 1000,
+                            delayMillis = 10000,
                         ) else Modifier,
                         color = if(audio == currentPlayingAudio) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
@@ -101,13 +105,19 @@ fun AudioItem(
                 )
                 Spacer(modifier = Modifier.size(4.dp))
             }
-//            Spacer(modifier = Modifier.height(4.dp))
-//            Slider(
-//                value = progress,
-//                onValueChange = onProgress,
-//                valueRange = 0f..100f,
-//                modifier = Modifier.weight(1f)
-//            )
+            AnimatedVisibility(
+                visible = isAudioPlaying && audio == currentPlayingAudio,
+                enter = expandVertically(animationSpec = tween(300)),
+                exit = shrinkVertically(animationSpec = tween(300))
+            ) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Slider(
+                    value = progress,
+                    onValueChange = onProgress,
+                    valueRange = 0f..100f,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }

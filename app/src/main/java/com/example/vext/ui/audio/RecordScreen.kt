@@ -2,6 +2,7 @@ package com.example.vext.ui.audio
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,16 +34,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.vext.R
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
-import kotlinx.coroutines.delay
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState",
     "ProduceStateDoesNotAssignValue", "MutableCollectionMutableState"
@@ -62,7 +59,9 @@ fun RecordScreen(
     var showAlertDialog by rememberSaveable {
         mutableStateOf(false)
     }
-    var isRecording by mutableStateOf(false)
+    var isRecording = remember {
+        mutableStateOf(false)
+    }
     var isPaused by mutableStateOf(false)
 
     Scaffold(
@@ -105,22 +104,29 @@ fun RecordScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
-                IconButton(onClick = { /*TODO*/ }) {
+                //Cancel Button
+                IconButton(onClick = {
+                    isRecording.value = false
+                    isPaused = false
+                    recorder.cancel()
+                }) {
                     Icon(
                         imageVector = Icons.Filled.Cancel,
                         contentDescription = "Cancel",
                         modifier = Modifier.size(75.dp)
                     )
                 }
+                //Record Button
                 IconButton(
                     onClick = {
-                        if(!isRecording){
+                        if(!isRecording.value){
                             recorder.start()
-                            isRecording = true
+                            isRecording.value = true
                         } else {
                             if(recorder.isPaused) {
                                 recorder.resume()
                                 isPaused = false
+                                Log.e("RecordScreen", recorder.amplitudes.toString())
                             } else {
                                 recorder.pause()
                                 isPaused = true
@@ -135,7 +141,11 @@ fun RecordScreen(
                         modifier = Modifier.size(100.dp)
                     )
                 }
-                IconButton(onClick = { /*TODO*/ }) {
+                //Stop Record and Save Button
+                IconButton(onClick = {
+                    isPaused = true
+                    showAlertDialog = true
+                }) {
                     Icon(
                         imageVector = Icons.Filled.Stop,
                         contentDescription = "Stop",
@@ -153,7 +163,7 @@ fun RecordScreen(
             Timer(
                 recordingTime = recorder.recordingTime
             )
-            AudioFingerprintDisplay(recorder)
+            AudioFingerprintDisplay(recorder = recorder, isRecording = isRecording)
         }
 
         //Save file
@@ -161,12 +171,14 @@ fun RecordScreen(
             StopAlertDialog(
                 onSaveRequest = {filename ->
                     showAlertDialog = false
-                    isRecording = false
+                    isRecording.value = false
+                    isPaused = false
                     recorder.stop(filename)
                 },
                 onDismissRequest = {
                     showAlertDialog = false
-                    isRecording = false
+                    isRecording.value = false
+                    isPaused = false
                     recorder.cancel()
                 }
             )

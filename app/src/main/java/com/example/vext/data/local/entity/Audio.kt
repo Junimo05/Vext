@@ -1,8 +1,9 @@
-package com.example.vext.data
+package com.example.vext.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.sql.Blob
 
 @Entity(tableName = "audio")
 data class AudioDes(
@@ -17,5 +18,4 @@ data class AudioDes(
     @ColumnInfo(name = "audio_type") var audioType: String,
     @ColumnInfo(name = "audio_waveform_processed") var audioWaveformProcessed: Boolean,
     @ColumnInfo(name = "audio_bookmarked") var audioBookmarked: Boolean,
-    @ColumnInfo(name = "audio_data") var audioData: List<Byte>,
 )
