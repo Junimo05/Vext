@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.vext.jetaudio.player.services.JetAudioService
 import com.example.vext.ViewModel.AudioViewModel
+import com.example.vext.ViewModel.RecordEvents
 import com.example.vext.ui.audio.Home
 import com.example.vext.ViewModel.UIEvents
 import com.example.vext.ui.audio.RecordScreen
@@ -81,10 +82,9 @@ class MainActivity : ComponentActivity() {
                         composable("record") {
                             RecordScreen(
                                 context = LocalContext.current,
-                                reloadData = {
-                                    audioViewModel.loadAudioData()
-                                },
-                                navController = navController
+                                navController = navController,
+                                recorder = audioViewModel.recorder,
+                                saveLocalData = {audioViewModel.onRecordEvents(RecordEvents.SaveRecordingToLocal(it))}
                             )
                         }
                     }

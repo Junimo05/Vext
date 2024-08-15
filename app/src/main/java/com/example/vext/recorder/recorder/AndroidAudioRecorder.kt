@@ -7,8 +7,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PersistableBundle
 import android.provider.MediaStore
 import androidx.compose.runtime.mutableLongStateOf
+import com.example.vext.data.local.entity.AudioDes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -20,18 +22,21 @@ import javax.inject.Inject
 
 class AndroidAudioRecorder @Inject constructor(
     private val context: Context,
-    private val reloadData: () -> Unit
 ): AudioRecorder {
 
     private var recorder: MediaRecorder? = null
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     private var tempFile = File(context.cacheDir, "temp_audio.mp3")
     private var targetUri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     val amplitudes = mutableListOf<Float>()
-    private val scope = CoroutineScope(Dispatchers.Main)
-
     private val timerHandler = TimerHandler()
     var recordingTime = mutableLongStateOf(0L)
+
+    private var filename: String = ""
+    private var savePath: String = ""
+    private var createdTime: Long = 0L
+    private var fileSize: Long = 0L
 
     var isPaused: Boolean = false
     var isStop: Boolean = false
@@ -46,11 +51,11 @@ class AndroidAudioRecorder @Inject constructor(
     override fun start() {
         isStop = false
         createRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setAudioSource(MediaRecorder.AudioSource.DEFAULT)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioEncodingBitRate(16*44100)
-            setAudioSamplingRate(44100)
+//            setAudioEncodingBitRate(16*44100)
+//            setAudioSamplingRate(44100)
             setOutputFile(tempFile.absolutePath)
 
             prepare()
@@ -74,41 +79,91 @@ class AndroidAudioRecorder @Inject constructor(
 
     override fun stop(filename: String) {
         isStop = true
+        timerHandler.stop()
         recorder?.stop()
-        recorder?.reset()
-        recorder = null
+        this.filename = filename
+        this.fileSize = tempFile.length()
         scope.launch {
             saveAudioFile(filename)
+            createdTime = System.currentTimeMillis()
             delay(1000L)
-            reloadData()
+//            reloadData()
         }
-        timerHandler.stop()
     }
 
     override fun getAmplitude(): Int {
         return recorder?.maxAmplitude ?: 0
     }
 
-    fun cancel() {
+    override fun cancel() {
         isStop = true
+        isPaused = false
         timerHandler.stop()
+        recordingTime.longValue = timerHandler.milliseconds
         recorder?.stop()
         recorder?.reset()
-        recorder = null
         tempFile.delete()
+        recorder = null
     }
 
-    fun pause() {
-        recorder?.pause()
+    override fun pause() {
         isPaused = true
+        timerHandler.pause()
+        recorder?.pause()
     }
 
-    fun resume() {
+    override fun resume() {
         isPaused = false
+        timerHandler.resume()
         recorder?.resume()
 
     }
 
+    override fun toItem(): AudioDes {
+        var audio_filename = this.filename
+        var audio_duration = this.recordingTime.longValue
+        var audio_path = this.savePath
+        var audio_created = this.createdTime
+        var audio_bitrate: Int = 0
+        var audio_sample_rate: Int = 0
+        var audio_size: Long = fileSize
+        var audio_channel: Int = 0
+        var audio_waveform_processed: Boolean = false
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
+            val metrics = recorder?.metrics
+            audio_bitrate = metrics?.getInt(MediaRecorder.MetricsConstants.AUDIO_BITRATE) ?: 0
+            audio_sample_rate = metrics?.getInt(MediaRecorder.MetricsConstants.AUDIO_SAMPLERATE) ?: 0
+            audio_channel = metrics?.getInt(MediaRecorder.MetricsConstants.AUDIO_CHANNELS) ?: 0
+
+        }
+        if(amplitudes.isNotEmpty()){
+            audio_waveform_processed = true
+        }
+        return AudioDes(
+            audioName = audio_filename,
+            audioDuration = audio_duration,
+            audioPath = audio_path,
+            audioCreated = audio_created,
+            audioAdded = System.currentTimeMillis(),
+            audioRemoved = 0L,
+            audioSize = audio_size,
+            audioType = "audio/mp3",
+            audioChannel = audio_channel,
+            audioBitrate = audio_bitrate,
+            audioSampleRate = audio_sample_rate,
+            audioWaveformProcessed = audio_waveform_processed,
+            audioBookmarked = false
+        )
+    }
+   fun clearRecorder(){
+        filename = ""
+        savePath = ""
+        createdTime = 0L
+        fileSize = 0L
+        amplitudes.clear()
+        recorder?.reset()
+        recorder = null
+    }
     private fun saveAudioFile(filename: String) {
         val resolver = context.contentResolver
         val contentValues = ContentValues().apply {
@@ -117,13 +172,12 @@ class AndroidAudioRecorder @Inject constructor(
         }
 
         val uri = resolver.insert(targetUri, contentValues)
-
         uri?.let {
             val outputStream = resolver.openOutputStream(it)
             val inputStream = tempFile.inputStream()
 
             copyStream(inputStream, outputStream)
-
+            this.savePath = uri.toString()
             inputStream.close()
             outputStream?.close()
         }
@@ -155,6 +209,14 @@ class TimerHandler {
     }
 
     fun start() {
+        handler.postDelayed(runnable, 10)
+    }
+
+    fun pause() {
+        handler.removeCallbacks(runnable)
+    }
+
+    fun resume() {
         handler.postDelayed(runnable, 10)
     }
 
