@@ -16,6 +16,9 @@ data class AudioDes(
     @ColumnInfo(name = "audio_removed") var audioRemoved: Long,
     @ColumnInfo(name = "audio_size") var audioSize: Long,
     @ColumnInfo(name = "audio_type") var audioType: String,
+    @ColumnInfo(name = "audio_channel") var audioChannel: Int,
+    @ColumnInfo(name = "audio_bitrate") var audioBitrate: Int,
+    @ColumnInfo(name = "audio_sample_rate") var audioSampleRate: Int,
     @ColumnInfo(name = "audio_waveform_processed") var audioWaveformProcessed: Boolean,
     @ColumnInfo(name = "audio_bookmarked") var audioBookmarked: Boolean,
 )

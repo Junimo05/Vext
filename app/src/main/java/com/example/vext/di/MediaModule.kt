@@ -15,6 +15,7 @@ import androidx.media3.session.SessionCommand
 import com.example.vext.R
 import com.example.vext.jetaudio.player.notifications.JetAudioNotificationManager
 import com.example.vext.jetaudio.player.services.JetAudioServiceHandler
+import com.example.vext.recorder.recorder.AndroidAudioRecorder
 import com.example.vext.utils.TrashBin
 import com.google.common.collect.ImmutableList
 import dagger.Module
@@ -88,4 +89,11 @@ object MediaModule {
     fun provideTrashBin(
         @ApplicationContext context: Context
     ): TrashBin = TrashBin(context)
+
+    @Provides
+    @Singleton
+    fun provideAudioRecordService(
+        @ApplicationContext context: Context
+    ): AndroidAudioRecorder = AndroidAudioRecorder(context)
+
 }

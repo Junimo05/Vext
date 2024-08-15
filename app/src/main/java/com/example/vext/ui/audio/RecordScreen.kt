@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.vext.data.local.entity.AudioDes
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState",
@@ -48,21 +49,15 @@ import com.example.vext.recorder.recorder.AndroidAudioRecorder
 @Composable
 fun RecordScreen(
     context: Context,
-    reloadData: () -> Unit,
-    navController: NavController
+    recorder: AndroidAudioRecorder,
+    navController: NavController,
+    saveLocalData: (AudioDes) -> Unit
 ) {
-
     //Record State
-    val recorder by lazy {
-        AndroidAudioRecorder(context = context, reloadData = reloadData)
-    }
+
     var showAlertDialog by rememberSaveable {
         mutableStateOf(false)
     }
-    var isRecording = remember {
-        mutableStateOf(false)
-    }
-    var isPaused by mutableStateOf(false)
 
     Scaffold(
         topBar = {
@@ -106,9 +101,8 @@ fun RecordScreen(
             ){
                 //Cancel Button
                 IconButton(onClick = {
-                    isRecording.value = false
-                    isPaused = false
                     recorder.cancel()
+                    Log.e("RecordScreen", "Cancel")
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Cancel,
@@ -119,17 +113,14 @@ fun RecordScreen(
                 //Record Button
                 IconButton(
                     onClick = {
-                        if(!isRecording.value){
+                        if(!recorder.isRecording.value){
                             recorder.start()
-                            isRecording.value = true
                         } else {
-                            if(recorder.isPaused) {
+                            if(recorder.isPaused.value) {
                                 recorder.resume()
-                                isPaused = false
-                                Log.e("RecordScreen", recorder.amplitudes.toString())
                             } else {
                                 recorder.pause()
-                                isPaused = true
+//                                Log.e("RecordScreen", recorder.amplitudes.toString())
                             }
                         }
                     },
@@ -143,7 +134,7 @@ fun RecordScreen(
                 }
                 //Stop Record and Save Button
                 IconButton(onClick = {
-                    isPaused = true
+                    recorder.isPaused.value = true
                     showAlertDialog = true
                 }) {
                     Icon(
@@ -163,7 +154,7 @@ fun RecordScreen(
             Timer(
                 recordingTime = recorder.recordingTime
             )
-            AudioFingerprintDisplay(recorder = recorder, isRecording = isRecording)
+            AudioFingerprintDisplay(recorder = recorder, isRecording = recorder.isRecording)
         }
 
         //Save file
@@ -171,15 +162,18 @@ fun RecordScreen(
             StopAlertDialog(
                 onSaveRequest = {filename ->
                     showAlertDialog = false
-                    isRecording.value = false
-                    isPaused = false
+                    recorder.isRecording.value = false
+                    recorder.isPaused.value = false
                     recorder.stop(filename)
+                    saveLocalData(recorder.toItem())
+                    recorder.clearRecorder()
                 },
                 onDismissRequest = {
                     showAlertDialog = false
-                    isRecording.value = false
-                    isPaused = false
+                    recorder.isRecording.value = false
+                    recorder.isPaused.value = false
                     recorder.cancel()
+                    recorder.clearRecorder()
                 }
             )
         }
@@ -216,7 +210,7 @@ fun StopAlertDialog(
     onDismissRequest: () -> Unit,
     onSaveRequest: (String)-> Unit
 ){
-    var fileName = rememberSaveable {
+    val fileName = rememberSaveable {
         mutableStateOf("AudioFile")
     }
     AlertDialog(
