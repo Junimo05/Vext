@@ -55,17 +55,9 @@ fun RecordScreen(
 ) {
     //Record State
 
-    val recorder by lazy {
-        AndroidAudioRecorder(context = context)
-    }
-
     var showAlertDialog by rememberSaveable {
         mutableStateOf(false)
     }
-    val isRecording = remember {
-        mutableStateOf(false)
-    }
-    var isPaused by mutableStateOf(false)
 
     Scaffold(
         topBar = {
@@ -109,8 +101,6 @@ fun RecordScreen(
             ){
                 //Cancel Button
                 IconButton(onClick = {
-                    isRecording.value = false
-                    isPaused = false
                     recorder.cancel()
                     Log.e("RecordScreen", "Cancel")
                 }) {
@@ -123,17 +113,14 @@ fun RecordScreen(
                 //Record Button
                 IconButton(
                     onClick = {
-                        if(!isRecording.value){
+                        if(!recorder.isRecording.value){
                             recorder.start()
-                            isRecording.value = true
                         } else {
-                            if(recorder.isPaused) {
+                            if(recorder.isPaused.value) {
                                 recorder.resume()
-                                isPaused = false
                             } else {
-                                isPaused = true
                                 recorder.pause()
-                                Log.e("RecordScreen", recorder.amplitudes.toString())
+//                                Log.e("RecordScreen", recorder.amplitudes.toString())
                             }
                         }
                     },
@@ -147,7 +134,7 @@ fun RecordScreen(
                 }
                 //Stop Record and Save Button
                 IconButton(onClick = {
-                    isPaused = true
+                    recorder.isPaused.value = true
                     showAlertDialog = true
                 }) {
                     Icon(
@@ -167,7 +154,7 @@ fun RecordScreen(
             Timer(
                 recordingTime = recorder.recordingTime
             )
-            AudioFingerprintDisplay(recorder = recorder, isRecording = isRecording)
+            AudioFingerprintDisplay(recorder = recorder, isRecording = recorder.isRecording)
         }
 
         //Save file
@@ -175,19 +162,18 @@ fun RecordScreen(
             StopAlertDialog(
                 onSaveRequest = {filename ->
                     showAlertDialog = false
-                    isRecording.value = false
-                    isPaused = false
-                    //TODO: Change save file
+                    recorder.isRecording.value = false
+                    recorder.isPaused.value = false
                     recorder.stop(filename)
                     saveLocalData(recorder.toItem())
                     recorder.clearRecorder()
                 },
                 onDismissRequest = {
                     showAlertDialog = false
-                    isRecording.value = false
-                    isPaused = false
-                    //Todo: Change cancel
+                    recorder.isRecording.value = false
+                    recorder.isPaused.value = false
                     recorder.cancel()
+                    recorder.clearRecorder()
                 }
             )
         }

@@ -9,7 +9,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.PersistableBundle
 import android.provider.MediaStore
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import com.example.vext.data.local.entity.AudioDes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +40,9 @@ class AndroidAudioRecorder @Inject constructor(
     private var createdTime: Long = 0L
     private var fileSize: Long = 0L
 
-    var isPaused: Boolean = false
-    var isStop: Boolean = false
+    var isRecording: MutableState<Boolean> = mutableStateOf(false)
+    var isPaused: MutableState<Boolean> = mutableStateOf(false)
+    var isStop: MutableState<Boolean> = mutableStateOf(true)
 
 
     private fun createRecorder(): MediaRecorder {
@@ -49,13 +52,15 @@ class AndroidAudioRecorder @Inject constructor(
     }
 
     override fun start() {
-        isStop = false
+        isStop.value = false
+        isPaused.value = false
+        isRecording.value = true
         createRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.DEFAULT)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-//            setAudioEncodingBitRate(16*44100)
-//            setAudioSamplingRate(44100)
+            setAudioEncodingBitRate(16*44100)
+            setAudioSamplingRate(44100)
             setOutputFile(tempFile.absolutePath)
 
             prepare()
@@ -69,7 +74,7 @@ class AndroidAudioRecorder @Inject constructor(
         scope.launch {
             while (recorder != null) {
                 delay(10L)
-                if(!isPaused) {
+                if(!isPaused.value) {
                     recordingTime.longValue = timerHandler.milliseconds
                 }
             }
@@ -78,7 +83,9 @@ class AndroidAudioRecorder @Inject constructor(
     }
 
     override fun stop(filename: String) {
-        isStop = true
+        isStop.value = true
+        isPaused.value = false
+        isRecording.value = false
         timerHandler.stop()
         recorder?.stop()
         this.filename = filename
@@ -96,8 +103,9 @@ class AndroidAudioRecorder @Inject constructor(
     }
 
     override fun cancel() {
-        isStop = true
-        isPaused = false
+        isStop.value = true
+        isPaused.value = false
+        isRecording.value = false
         timerHandler.stop()
         recordingTime.longValue = timerHandler.milliseconds
         recorder?.stop()
@@ -107,13 +115,13 @@ class AndroidAudioRecorder @Inject constructor(
     }
 
     override fun pause() {
-        isPaused = true
+        isPaused.value = true
         timerHandler.pause()
         recorder?.pause()
     }
 
     override fun resume() {
-        isPaused = false
+        isPaused.value = false
         timerHandler.resume()
         recorder?.resume()
 

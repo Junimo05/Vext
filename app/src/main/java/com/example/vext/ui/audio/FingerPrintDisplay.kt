@@ -1,6 +1,7 @@
 package com.example.vext.ui.audio
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -49,7 +50,7 @@ fun AudioFingerprintDisplay(
     var sizeCanvas by remember { mutableStateOf(IntSize.Zero) }
 
     fun addAmplitudeData(amp: Float) {
-        amplitudes.value = amplitudes.value + amp
+        amplitudes.value += amp
         if(amplitudes.value.size > 100) {
             amplitudes.value = amplitudes.value.drop(1)
         }
@@ -59,26 +60,15 @@ fun AudioFingerprintDisplay(
         amplitudes.value = listOf()
     }
 
-    LaunchedEffect(key1 = recorder, key2 = isRecording.value) {
-        when{
-            !isRecording.value -> {
-                clearAmplitudeData()
-            }
-            recorder.isPaused -> {
-                while (true) {
-                    while(recorder.isPaused) {
-                        delay(100)
-                    }
-                    val amplitude = recorder.getAmplitude().toFloat()
-                    addAmplitudeData(amplitude) //save amplitude for display
-                    recorder.amplitudes.add(amplitude) //save amplitude to file
-                    delay(100)
-
-                    if(recorder.isStop) {
-                        break
-                    }
-                }
-            }
+    LaunchedEffect(key1 = isRecording.value, key2 = recorder.isPaused.value) {
+        while (isRecording.value && !recorder.isPaused.value) {
+            val amplitude = recorder.getAmplitude().toFloat()
+            addAmplitudeData(amplitude) //save amplitude for display
+            recorder.amplitudes.add(amplitude) //save amplitude to file
+            delay(100)
+        }
+        if(!isRecording.value) {
+            clearAmplitudeData()
         }
     }
 
