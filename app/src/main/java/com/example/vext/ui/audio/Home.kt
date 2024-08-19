@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -208,6 +208,7 @@ fun Home(
                             isAudioPlaying = isAudioPlaying,
                             currentPlayingAudio = currentPlayingAudio,
                             onAudioClick = onAudioClick,
+                            onStart = onStart,
                             progress = progress,
                             onProgress = onProgress,
                         )

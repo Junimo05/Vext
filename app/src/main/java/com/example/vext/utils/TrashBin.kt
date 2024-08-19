@@ -7,7 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.io.FileOutputStream
@@ -47,7 +47,10 @@ class TrashBin(
                 artist = artist ?: "Unknown", // Use metadata or "Unknown" if not available
                 data = data, // Use file path as data
                 duration = duration, // Use metadata or 0 if not available
-                title = title ?: file.nameWithoutExtension // Use metadata or file name if not available
+                title = title ?: file.nameWithoutExtension, // Use metadata or file name if not available
+                audioCreated = file.lastModified(),
+                audioSize = file.length(),
+                audioBookmarked = false
             )
             trashList += audio
         }

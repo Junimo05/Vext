@@ -48,7 +48,6 @@ import com.example.vext.recorder.recorder.AndroidAudioRecorder
 )
 @Composable
 fun RecordScreen(
-    context: Context,
     recorder: AndroidAudioRecorder,
     navController: NavController,
     saveLocalData: (AudioDes) -> Unit

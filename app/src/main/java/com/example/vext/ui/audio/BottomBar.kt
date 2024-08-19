@@ -32,7 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 import java.util.concurrent.TimeUnit
 
 @Composable

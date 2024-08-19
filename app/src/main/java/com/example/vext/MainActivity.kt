@@ -30,6 +30,17 @@ import com.example.vext.ui.theme.VextTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 
+
+/*
+    JetpackCompose,
+    DI: Dependency Injection with Hilt/ Dagger,
+    MVVM: Model View ViewModel,
+    Repository Pattern,
+    Room Database,
+    ExoPlayer,
+    Coroutines,
+*/
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val audioViewModel: AudioViewModel by viewModels()
@@ -81,7 +92,6 @@ class MainActivity : ComponentActivity() {
 
                         composable("record") {
                             RecordScreen(
-                                context = LocalContext.current,
                                 navController = navController,
                                 recorder = audioViewModel.recorder,
                                 saveLocalData = {audioViewModel.onRecordEvents(RecordEvents.SaveRecordingToLocal(it))}

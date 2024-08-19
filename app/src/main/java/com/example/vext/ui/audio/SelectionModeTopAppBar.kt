@@ -36,7 +36,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 import com.example.vext.utils.audioIntent.shareAudio
 import com.example.vext.utils.getRealPathFromURI
 import kotlinx.coroutines.CoroutineScope

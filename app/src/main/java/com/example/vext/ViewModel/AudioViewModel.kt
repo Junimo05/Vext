@@ -19,7 +19,7 @@ import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.vext.data.local.entity.AudioDes
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 import com.example.vext.data.local.repository.AudioRepository
 import com.example.vext.jetaudio.player.services.JetAudioServiceHandler
 import com.example.vext.jetaudio.player.services.JetAudioState
@@ -37,7 +37,7 @@ import javax.inject.Inject
 
 
 private val audioDummy = Audio(
-    "".toUri(), "", 0L, "", "", 0, ""
+    "".toUri(), "", 0L, "", "", 0, "", 0, 0, false
 )
 
 @HiltViewModel
@@ -69,7 +69,7 @@ class AudioViewModel @Inject constructor(
 
     //Recorder State
     val recorder by lazy {
-        AndroidAudioRecorder(context = context)
+        AndroidAudioRecorder(context)
     }
 
     private fun saveAudioToLocal(audioDes: AudioDes) {
@@ -82,9 +82,9 @@ class AudioViewModel @Inject constructor(
 
     init {
         loadAudioData()
-        //logtest
         viewModelScope.launch {
             repository.logTest()
+            repository.deleteAllDataAudio()
         }
     }
 
