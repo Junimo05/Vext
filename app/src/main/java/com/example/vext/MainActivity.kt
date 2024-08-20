@@ -102,7 +102,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun requestRuntimePermission(){
         when{

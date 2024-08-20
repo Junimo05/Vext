@@ -24,7 +24,7 @@ interface AudioDao {
 
     //Delete
     @Query("DELETE FROM audio WHERE id = :id")
-    suspend fun deleteAudio(id: String)
+    suspend fun deleteAudio(id: Int)
 
     @Query("DELETE FROM audio")
     suspend fun deleteAllAudio()

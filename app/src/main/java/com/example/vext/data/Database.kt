@@ -1,13 +1,27 @@
 package com.example.vext.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.RenameTable
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.AutoMigrationSpec
 import com.example.vext.data.local.entity.AudioDes
 
 
-@Database(entities = [AudioDes::class], version = 1)
+@Database(
+    entities = [AudioDes::class],
+    version = 3,
+    exportSchema = true,
+//    autoMigrations = [
+//        AutoMigration(
+//            from = 1,
+//            to = 2,
+//            spec = AppDatabase.MyAutoMigration::class
+//        )
+//    ]
+)
 abstract class AppDatabase : RoomDatabase(
 
 ) {
@@ -30,10 +44,17 @@ abstract class AppDatabase : RoomDatabase(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME
-                ).build()
+                )
+                    .fallbackToDestructiveMigration() //delete if want to use auto migration
+                    .build()
                 INSTANCE = instance
                 return instance
             }
         }
+    }
+
+    @RenameTable(fromTableName = "User", toTableName = "AppUser")
+    class MyAutoMigration : AutoMigrationSpec {
+
     }
 }

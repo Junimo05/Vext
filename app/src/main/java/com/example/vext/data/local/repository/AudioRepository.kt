@@ -1,13 +1,12 @@
 package com.example.vext.data.local.repository
 
 import android.content.Context
-import android.media.CamcorderProfile.getAll
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.vext.data.local.entity.AudioDes
 import com.example.vext.data.local.entity.toAudio
-import com.example.vext.model.Audio
 import com.example.vext.data.local.services.AudioService.AudioLocalService
+import com.example.vext.model.Audio
 import com.example.vext.utils.checkAudioExistsInMediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +36,7 @@ class AudioRepository @Inject constructor(
         return audioDesList.map { audioDes ->
             val audio = audioDes.toAudio()
 
-            val fileExists = checkAudioExistsInMediaStore(context, audioDes.id.toUri())
+            val fileExists = checkAudioExistsInMediaStore(context, audioDes.audioPath.toUri())
 
             if (fileExists) {
                 audio
@@ -48,7 +47,7 @@ class AudioRepository @Inject constructor(
         }.filterNotNull()
     }
 
-    suspend fun deleteAudioFilesLocal (audioId: String) = withContext(Dispatchers.IO){
+    suspend fun deleteAudioFilesLocal (audioId: Int) = withContext(Dispatchers.IO){
         try {
             audioLocalService.deleteAudioById(audioId)
         } catch (e: Exception) {

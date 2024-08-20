@@ -1,7 +1,9 @@
 package com.example.vext.ui.audio
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -35,7 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.example.vext.MainActivity
 import com.example.vext.model.Audio
 import com.example.vext.utils.audioIntent.shareAudio
 import com.example.vext.utils.getRealPathFromURI
@@ -144,7 +149,16 @@ fun SelectionModeTopAppBar(
         val result = AlertCheck()
         if (result) {
             isDropDownVisible = false
-            deleteAudio(selectedItems)
+            if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    context as MainActivity,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    1)
+                deleteAudio(selectedItems)
+            } else {
+                deleteAudio(selectedItems)
+            }
             resetSelectionMode()
             showConfirmMenu = false
         }

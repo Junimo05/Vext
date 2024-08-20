@@ -9,6 +9,7 @@ import android.util.Log
 import com.example.vext.data.AudioDao
 import com.example.vext.data.local.entity.AudioDes
 import com.example.vext.model.Audio
+import com.example.vext.utils.checkAudioExistsInMediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -95,11 +96,10 @@ class AudioLocalService @Inject constructor(
         }
 
         fun deleteAudioFile(audio: Audio){
-            context.contentResolver.delete(
-                audio.uri,
-                "${MediaStore.Audio.AudioColumns._ID} = ?",
-                arrayOf(audio.id.toString())
-            )
+            Log.e(TAG, "deleteAudioFile: Deleting Audio File with uri: ${audio.uri}")
+            if(checkAudioExistsInMediaStore(context, audio.uri)){
+                context.contentResolver.delete(audio.uri, null, null)
+            }
         }
 
     //Database Getting
@@ -107,7 +107,7 @@ class AudioLocalService @Inject constructor(
 
     suspend fun getAudioById(id: Int) = audioDao.getAudio(id)
 
-    suspend fun deleteAudioById(id: String) = audioDao.deleteAudio(id)
+    suspend fun deleteAudioById(id: Int) = audioDao.deleteAudio(id)
 
     suspend fun deleteAllAudioData() = audioDao.deleteAllAudio()
 

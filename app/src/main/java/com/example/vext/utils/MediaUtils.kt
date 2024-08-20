@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 
 fun getRealPathFromURI(context: Context, contentUri: Uri): String {
     var cursor: Cursor? = null
@@ -36,10 +37,15 @@ fun checkAudioNameExistsInMediaStore(context: Context, filename: String): Boolea
     return exists
 }
 
-fun checkAudioExistsInMediaStore(context: Context, uri: Uri): Boolean {
+fun checkAudioExistsInMediaStore(context: Context, audioPath: Uri?): Boolean {
+    if (audioPath == null) {
+
+        return false
+    }
+    Log.e("checkAudioExistsInMediaStore", "audioPath: $audioPath")
     val projection = arrayOf(MediaStore.Audio.Media._ID)
     val selection = "${MediaStore.Audio.Media._ID} = ?"
-    val selectionArgs = arrayOf(uri.lastPathSegment)
+    val selectionArgs = arrayOf(audioPath.lastPathSegment)
     val cursor = context.contentResolver.query(
         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         projection,
@@ -48,8 +54,8 @@ fun checkAudioExistsInMediaStore(context: Context, uri: Uri): Boolean {
         null
     )
 
-    val exists = cursor?.moveToFirst() == true
+    val exists = cursor?.moveToFirst() ?: false
+    Log.e("checkAudioExistsInMediaStore", "exists: $exists")
     cursor?.close()
-
     return exists
 }

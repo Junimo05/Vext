@@ -5,11 +5,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.vext.model.Audio
-import java.sql.Blob
 
 @Entity(tableName = "audio")
 data class AudioDes(
-    @PrimaryKey var id: String,
+    @PrimaryKey(autoGenerate = true) var id: Int = 0,
     @ColumnInfo(name = "audio_name") var audioName: String,
     @ColumnInfo(name = "audio_duration") var audioDuration: Long,
     @ColumnInfo(name = "audio_path") var audioPath: String,
@@ -27,13 +26,13 @@ data class AudioDes(
 
 fun AudioDes.toAudio(): Audio {
     return Audio(
+        id = this.id.toLong(),
         uri = Uri.parse(this.audioPath),
         displayName = this.audioName,
-        id = this.id.toLong(),
-        artist = "", // You need to provide a way to get the artist
+        artist = "", // provide a way to get the artist
         data = this.audioPath,
         duration = this.audioDuration.toInt(),
-        title = this.audioName, // You need to provide a way to get the title
+        title = this.audioName, // provide a way to get the title
         audioCreated = this.audioCreated,
         audioSize = this.audioSize,
         audioBookmarked = this.audioBookmarked

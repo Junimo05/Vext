@@ -84,7 +84,6 @@ class AudioViewModel @Inject constructor(
         loadAudioData()
         viewModelScope.launch {
             repository.logTest()
-            repository.deleteAllDataAudio()
         }
     }
 
@@ -110,7 +109,7 @@ class AudioViewModel @Inject constructor(
 
     fun loadAudioData() {
         viewModelScope.launch {
-            val audio = repository.getAllAudioFilesLocal()
+            val audio = repository.getLocalAudioFiles() //get data
             audioList = audio
             setMediaItems()
             if(contentObserver == null) {

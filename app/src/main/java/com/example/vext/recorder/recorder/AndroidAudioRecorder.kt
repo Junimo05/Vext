@@ -22,6 +22,8 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class AndroidAudioRecorder @Inject constructor(
     private val context: Context,
@@ -40,6 +42,7 @@ class AndroidAudioRecorder @Inject constructor(
     private var savePath: String = ""
     private var createdTime: Long = 0L
     private var fileSize: Long = 0L
+    private var audioId: String = ""
 
     var isRecording: MutableState<Boolean> = mutableStateOf(false)
     var isPaused: MutableState<Boolean> = mutableStateOf(false)
@@ -83,14 +86,17 @@ class AndroidAudioRecorder @Inject constructor(
 
     }
 
-    override fun stop(filename: String) {
+    override suspend fun stop(filename: String) {
         isStop.value = true
         isPaused.value = false
         isRecording.value = false
         timerHandler.stop()
         recorder?.stop()
-        scope.launch {
-            saveRecordingFile(filename)
+        suspendCoroutine { continuation ->
+            scope.launch {
+                saveRecordingFile(filename)
+                continuation.resume(Unit)
+            }
         }
     }
 
@@ -136,13 +142,17 @@ class AndroidAudioRecorder @Inject constructor(
         val audioFilename = this.filename // atr created
         val audioDuration = this.recordingTime.longValue //atr created
         val audioPath = this.savePath //atr created
-        val audioId = savePath.toUri().lastPathSegment
         val audioCreated = this.createdTime //atr created
         var audioBitrate: Int = 0
         var audioSampleRate: Int = 0
         val audioSize: Long = fileSize
         var audioChannel: Int = 0
         var audioWaveformProcessed: Boolean = false
+
+        if (audioFilename == "" || audioPath == "") {
+            throw IllegalStateException("Audio file not saved")
+        }
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
             val metrics = recorder?.metrics
             audioBitrate = metrics?.getInt(MediaRecorder.MetricsConstants.AUDIO_BITRATE) ?: 0
@@ -154,8 +164,9 @@ class AndroidAudioRecorder @Inject constructor(
             audioWaveformProcessed = true
         }
 
+        //check null values
+
         return AudioDes(
-            id = audioId!!,
             audioName = audioFilename,
             audioDuration = audioDuration,
             audioPath = audioPath,
