@@ -26,6 +26,7 @@ import com.example.vext.ViewModel.RecordEvents
 import com.example.vext.ui.audio.Home
 import com.example.vext.ViewModel.UIEvents
 import com.example.vext.ui.audio.RecordScreen
+import com.example.vext.ui.audio.SearchScreen
 import com.example.vext.ui.theme.VextTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -96,6 +97,21 @@ class MainActivity : ComponentActivity() {
                                 recorder = audioViewModel.recorder,
                                 saveLocalData = {audioViewModel.onRecordEvents(RecordEvents.SaveRecordingToLocal(it))}
                             )
+                        }
+
+                        composable("search") {
+                             SearchScreen(
+                                 audioList = audioViewModel.audioList,
+                                 navController = navController,
+                                 isAudioPlaying = audioViewModel.isPlaying,
+                                 currentPlayingAudio = audioViewModel.currentSelectedAudio,
+                                 progress = audioViewModel.progress,
+                                 onProgress = { audioViewModel.onUIEvents(UIEvents.SeekTo(it)) },
+                                 onAudioClick = { audioViewModel.onUIEvents(UIEvents.SelectedAudioChange(it)) },
+                                 onStart = {
+                                     audioViewModel.onUIEvents(UIEvents.PlayPause)
+                                 }
+                             )
                         }
                     }
                 }

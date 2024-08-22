@@ -24,7 +24,7 @@ android {
 
         kapt {
             arguments {
-                arg("room.schemaLocation", "$projectDir/schemas".toString())
+                arg("room.schemaLocation", "$projectDir/schemas")
             }
         }
     }

@@ -98,7 +98,7 @@ class AudioRepository @Inject constructor(
                     "Audio added: ${audio.audioAdded}, " +
                     "Audio removed: ${audio.audioRemoved}, " +
                     "Audio waveform processed: ${audio.audioWaveformProcessed}, " +
-                    "Audio bookmarked: ${audio.audioBookmarked}," +
+                    "Audio bookmarked: ${audio.audioFavorite}," +
                     "Audio duration: ${audio.audioDuration}"
             )
         }

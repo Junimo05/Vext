@@ -179,7 +179,7 @@ class AndroidAudioRecorder @Inject constructor(
             audioBitrate = audioBitrate,
             audioSampleRate = audioSampleRate,
             audioWaveformProcessed = audioWaveformProcessed,
-            audioBookmarked = false
+            audioFavorite = false
         )
     }
 

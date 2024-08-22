@@ -8,7 +8,6 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import com.example.vext.model.Audio
-import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.Executors
@@ -50,7 +49,7 @@ class TrashBin(
                 title = title ?: file.nameWithoutExtension, // Use metadata or file name if not available
                 audioCreated = file.lastModified(),
                 audioSize = file.length(),
-                audioBookmarked = false
+                audioFavorite = false
             )
             trashList += audio
         }

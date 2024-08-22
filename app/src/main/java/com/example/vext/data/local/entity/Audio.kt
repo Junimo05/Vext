@@ -21,7 +21,7 @@ data class AudioDes(
     @ColumnInfo(name = "audio_bitrate") var audioBitrate: Int,
     @ColumnInfo(name = "audio_sample_rate") var audioSampleRate: Int,
     @ColumnInfo(name = "audio_waveform_processed") var audioWaveformProcessed: Boolean,
-    @ColumnInfo(name = "audio_bookmarked") var audioBookmarked: Boolean,
+    @ColumnInfo(name = "audio_bookmarked") var audioFavorite: Boolean,
 )
 
 fun AudioDes.toAudio(): Audio {
@@ -35,6 +35,6 @@ fun AudioDes.toAudio(): Audio {
         title = this.audioName, // provide a way to get the title
         audioCreated = this.audioCreated,
         audioSize = this.audioSize,
-        audioBookmarked = this.audioBookmarked
+        audioFavorite = this.audioFavorite
     )
 }
