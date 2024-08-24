@@ -192,6 +192,10 @@ class AudioViewModel @Inject constructor(
             is UIEvents.DeleteSelectedAudios -> {
                 deleteAudio(uiEvents.audio)
             }
+
+            is UIEvents.Clear -> {
+                audioServiceHandler.onPlayerEvents(PlayerEvent.Clear)
+            }
         }
     }
 
@@ -251,6 +255,7 @@ sealed class UIEvents {
     object SeekToNext : UIEvents()
     object Backward : UIEvents()
     object Forward : UIEvents()
+    object Clear: UIEvents()
     data class UpdateProgress(val newProgress: Float) : UIEvents()
 }
 

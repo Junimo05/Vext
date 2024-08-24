@@ -3,7 +3,6 @@ package com.example.vext.ui.audio
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
@@ -16,10 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -44,9 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.vext.model.Audio
-import com.example.vext.ui.theme.backgroundLight
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration
 
 @Composable
 fun SearchScreen(
@@ -58,17 +55,36 @@ fun SearchScreen(
     onProgress: (Float) -> Unit,
     onAudioClick: (Int) -> Unit,
     onStart:() -> Unit,
+    onClear: ()->Unit,
     modifier: Modifier = Modifier,
 ){
     Search(
-//        navController = navController,
+        audioList = audioList,
+        navController = navController,
+        isAudioPlaying = isAudioPlaying,
+        currentPlayingAudio = currentPlayingAudio,
+        progress = progress,
+        onProgress = onProgress,
+        onAudioClick = onAudioClick,
+        onStart = onStart,
+        onClear = onClear,
+        modifier = modifier
     )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Search(
-//    navController: NavController,
+    audioList: List<Audio>,
+    navController: NavController,
+    isAudioPlaying: Boolean,
+    currentPlayingAudio: Audio,
+    progress: Float,
+    onProgress: (Float) -> Unit,
+    onAudioClick: (Int) -> Unit,
+    onStart:() -> Unit,
+    onClear: ()->Unit,
+    modifier: Modifier = Modifier,
 ){
 
     var isFiltered = remember {
@@ -81,14 +97,29 @@ fun Search(
         mutableStateOf("")
     }
 
-    var dateFilter = 0L
+    var dateFilter by remember {
+        mutableStateOf(0L)
+    }
 
     var showFilter = remember {
         mutableStateOf(false)
     }
 
-    LaunchedEffect(key1 = searchQuery, key2 = dateFilter) {
+    var filteredAudioList by remember {
+        mutableStateOf(audioList)
+    }
 
+    LaunchedEffect(key1 = searchQuery, key2 = dateFilter) {
+        if(searchQuery.isEmpty() && dateFilter == 0L){
+            isFiltered.value = false
+        } else {
+            isFiltered.value = true
+        }
+        filteredAudioList = audioList.filter {audio ->
+            (searchQuery.isEmpty() || audio.displayName.contains(searchQuery, ignoreCase = true))
+                    &&
+            (dateFilter == 0L || audio.audioCreated > dateFilter)
+        }
         Log.e("SearchScreen", "Search Query: $searchQuery")
         Log.e("SearchScreen", "Date Filter: $dateFilter")
     }
@@ -113,7 +144,8 @@ fun Search(
             ){
                 IconButton(
                     onClick = {
-//                        navController.popBackStack()
+                        onClear()
+                        navController.popBackStack()
                     }
                 ) {
                     Icon(
@@ -163,7 +195,8 @@ fun Search(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Normal
                     ),
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
                         .padding(start = 10.dp)
                 )
 
@@ -173,7 +206,7 @@ fun Search(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        imageVector = if(!showFilter.value) Icons.Filled.ArrowDropDown else Icons.Filled.ArrowDropUp,
                         contentDescription = "Open"
                     )
                 }
@@ -185,8 +218,23 @@ fun Search(
             )
 
 
-            LazyColumn() {
+            Spacer(modifier = Modifier.height(8.dp))
 
+            LazyColumn() {
+                if(isFiltered.value){
+                    items(filteredAudioList.size) { index ->
+                        AudioItem(
+                            audio = filteredAudioList[index],
+                            isAudioPlaying = isAudioPlaying,
+                            currentPlayingAudio = currentPlayingAudio,
+                            onAudioClick = onAudioClick,
+                            onStart = onStart,
+                            progress = progress,
+                            onProgress = onProgress,
+                            index = index
+                        )
+                    }
+                }
             }
         }
     }
@@ -202,6 +250,8 @@ fun FilterCard(
         "7 days ago",
         "30 days ago"
     )
+
+    var selectedOption by remember { mutableStateOf("") }
 
     AnimatedVisibility(
         visible = showFilter.value,
@@ -220,7 +270,7 @@ fun FilterCard(
                 modifier = Modifier.padding(8.dp)
             ) {
                 Text(
-                    text = "Created At",
+                    text = "Time",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
@@ -233,9 +283,16 @@ fun FilterCard(
                     timeFilterList.forEachIndexed{index, item ->
                         FilterCardOptionItem(
                             content = item,
+                            isSelected = selectedOption == item,
                             onClick = {
-                                dateFilterString.value = it
-                                Log.e("FilterCard", "Selected: $it")
+                                if(selectedOption == item){
+                                    selectedOption = ""
+                                    dateFilterString.value = ""
+                                } else {
+                                    selectedOption = item
+                                    dateFilterString.value = item
+                                }
+//                                Log.e("FilterCard", "Selected: $it")
                             }
                         )
                     }
@@ -248,11 +305,12 @@ fun FilterCard(
 @Composable
 fun FilterCardOptionItem(
     content: String,
+    isSelected: Boolean,
     onClick: (String) -> Unit
 ){
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = Color.LightGray
+            containerColor = if (isSelected) Color.White else Color.LightGray
         ),
         modifier = Modifier
             .padding(4.dp)
@@ -273,11 +331,13 @@ fun FilterCardOptionItem(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewSearchScreen(){
-    Search()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewSearchScreen(){
+//    var audioList = listOf<Audio>()
+//    var navController = rememberNavController()
+//    Search(audioList, navController)
+//}
 
 @Preview(showBackground = true)
 @Composable
