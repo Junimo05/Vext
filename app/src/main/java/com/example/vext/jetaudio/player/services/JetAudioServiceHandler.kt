@@ -74,6 +74,7 @@ class JetAudioServiceHandler @Inject constructor(
             }
             PlayerEvent.SeekToNext -> exoPlayer.seekToNext()
 
+            PlayerEvent.Clear -> exoPlayer.stop()
         }
     }
 
@@ -90,7 +91,6 @@ class JetAudioServiceHandler @Inject constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
         if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO){
@@ -151,6 +151,7 @@ sealed class PlayerEvent {
     object SeekToNext: PlayerEvent()
     object SeekTo: PlayerEvent()
     object Stop: PlayerEvent()
+    object Clear: PlayerEvent()
     data class UpdateProgress(val newProgress: Float): PlayerEvent()
 }
 

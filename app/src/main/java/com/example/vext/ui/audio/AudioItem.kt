@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -43,6 +44,7 @@ fun AudioItem(
     progress: Float,
     onProgress: (Float) -> Unit,
     onAudioClick: (Int) -> Unit,
+    onStart:() -> Unit,
     modifier: Modifier = Modifier,
 ){
     Card(
@@ -61,10 +63,14 @@ fun AudioItem(
                 verticalAlignment = Alignment.CenterVertically,
             ){
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    imageVector = if(!isAudioPlaying) Icons.Default.PlayArrow else Icons.Default.Pause,
                     contentDescription = null,
                     modifier = Modifier.clickable {
-                        onAudioClick(index)
+                        if(!isAudioPlaying){
+                            onAudioClick(index)
+                        }else {
+                            onStart()
+                        }
                     }
                 )
                 Spacer(modifier = Modifier.size(4.dp))
@@ -106,7 +112,7 @@ fun AudioItem(
                 Spacer(modifier = Modifier.size(4.dp))
             }
             AnimatedVisibility(
-                visible = isAudioPlaying && audio == currentPlayingAudio,
+                visible = audio == currentPlayingAudio,
                 enter = expandVertically(animationSpec = tween(300)),
                 exit = shrinkVertically(animationSpec = tween(300))
             ) {

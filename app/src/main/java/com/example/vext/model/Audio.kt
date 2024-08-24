@@ -1,11 +1,9 @@
-package com.example.vext.data.local.model
+package com.example.vext.model
 
 import android.net.Uri
 import android.os.Parcelable
 import androidx.recyclerview.widget.DiffUtil
-import androidx.room.Entity
 import kotlinx.parcelize.Parcelize
-import java.net.URI
 
 @Parcelize
 data class Audio(
@@ -15,7 +13,10 @@ data class Audio(
     val artist: String,
     val data: String,
     val duration: Int,
-    val title: String
+    val title: String,
+    val audioCreated: Long,
+    val audioSize: Long,
+    val audioFavorite: Boolean
 ): Parcelable {
     companion object {
         val DiffCallback = object: DiffUtil.ItemCallback<Audio>() {

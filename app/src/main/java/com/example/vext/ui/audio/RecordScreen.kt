@@ -42,13 +42,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.vext.data.local.entity.AudioDes
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState",
     "ProduceStateDoesNotAssignValue", "MutableCollectionMutableState"
 )
 @Composable
 fun RecordScreen(
-    context: Context,
     recorder: AndroidAudioRecorder,
     navController: NavController,
     saveLocalData: (AudioDes) -> Unit
@@ -58,6 +60,8 @@ fun RecordScreen(
     var showAlertDialog by rememberSaveable {
         mutableStateOf(false)
     }
+
+    val scope = CoroutineScope(Dispatchers.Main)
 
     Scaffold(
         topBar = {
@@ -164,9 +168,11 @@ fun RecordScreen(
                     showAlertDialog = false
                     recorder.isRecording.value = false
                     recorder.isPaused.value = false
-                    recorder.stop(filename)
-                    saveLocalData(recorder.toItem())
-                    recorder.clearRecorder()
+                    scope.launch {
+                        recorder.stop(filename)
+                        saveLocalData(recorder.toItem())
+                        recorder.clearRecorder()
+                    }
                 },
                 onDismissRequest = {
                     showAlertDialog = false

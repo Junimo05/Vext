@@ -1,11 +1,9 @@
 package com.example.vext.ui.audio
 
+import android.Manifest
 import android.content.Context
-import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Delete
@@ -18,29 +16,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
-import com.example.vext.data.local.model.Audio
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.example.vext.MainActivity
+import com.example.vext.model.Audio
 import com.example.vext.utils.audioIntent.shareAudio
-import com.example.vext.utils.getRealPathFromURI
-import kotlinx.coroutines.CoroutineScope
-import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,10 +132,19 @@ fun SelectionModeTopAppBar(
     )
     //alert dialog
     if (showConfirmMenu) {
-        val result = AlertCheck()
+        val result = alertCheck()
         if (result) {
             isDropDownVisible = false
-            deleteAudio(selectedItems)
+            if(ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    context as MainActivity,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    1)
+                deleteAudio(selectedItems)
+            } else {
+                deleteAudio(selectedItems)
+            }
             resetSelectionMode()
             showConfirmMenu = false
         }
@@ -152,7 +152,7 @@ fun SelectionModeTopAppBar(
 }
 
 @Composable
-fun AlertCheck(
+fun alertCheck(
     modifier: Modifier = Modifier
 ): Boolean {
     var result by remember {

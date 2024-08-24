@@ -26,9 +26,21 @@ import com.example.vext.ViewModel.RecordEvents
 import com.example.vext.ui.audio.Home
 import com.example.vext.ViewModel.UIEvents
 import com.example.vext.ui.audio.RecordScreen
+import com.example.vext.ui.audio.SearchScreen
 import com.example.vext.ui.theme.VextTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+
+
+/*
+    JetpackCompose,
+    DI: Dependency Injection with Hilt/ Dagger,
+    MVVM: Model View ViewModel,
+    Repository Pattern,
+    Room Database,
+    ExoPlayer,
+    Coroutines,
+*/
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -81,18 +93,34 @@ class MainActivity : ComponentActivity() {
 
                         composable("record") {
                             RecordScreen(
-                                context = LocalContext.current,
                                 navController = navController,
                                 recorder = audioViewModel.recorder,
                                 saveLocalData = {audioViewModel.onRecordEvents(RecordEvents.SaveRecordingToLocal(it))}
                             )
+                        }
+
+                        composable("search") {
+                             SearchScreen(
+                                 audioList = audioViewModel.audioList,
+                                 navController = navController,
+                                 isAudioPlaying = audioViewModel.isPlaying,
+                                 currentPlayingAudio = audioViewModel.currentSelectedAudio,
+                                 progress = audioViewModel.progress,
+                                 onProgress = { audioViewModel.onUIEvents(UIEvents.SeekTo(it)) },
+                                 onAudioClick = { audioViewModel.onUIEvents(UIEvents.SelectedAudioChange(it)) },
+                                 onStart = {
+                                     audioViewModel.onUIEvents(UIEvents.PlayPause)
+                                 },
+                                 onClear = {
+                                     audioViewModel.onUIEvents(UIEvents.Clear)
+                                 }
+                             )
                         }
                     }
                 }
             }
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun requestRuntimePermission(){
         when{

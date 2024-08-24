@@ -3,7 +3,7 @@ package com.example.vext.utils.audioIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
-import com.example.vext.data.local.model.Audio
+import com.example.vext.model.Audio
 import com.example.vext.utils.getRealPathFromURI
 import java.io.File
 

@@ -1,9 +1,10 @@
 package com.example.vext.data.local.entity
 
+import android.net.Uri
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.sql.Blob
+import com.example.vext.model.Audio
 
 @Entity(tableName = "audio")
 data class AudioDes(
@@ -20,5 +21,20 @@ data class AudioDes(
     @ColumnInfo(name = "audio_bitrate") var audioBitrate: Int,
     @ColumnInfo(name = "audio_sample_rate") var audioSampleRate: Int,
     @ColumnInfo(name = "audio_waveform_processed") var audioWaveformProcessed: Boolean,
-    @ColumnInfo(name = "audio_bookmarked") var audioBookmarked: Boolean,
+    @ColumnInfo(name = "audio_bookmarked") var audioFavorite: Boolean,
 )
+
+fun AudioDes.toAudio(): Audio {
+    return Audio(
+        id = this.id.toLong(),
+        uri = Uri.parse(this.audioPath),
+        displayName = this.audioName,
+        artist = "", // provide a way to get the artist
+        data = this.audioPath,
+        duration = this.audioDuration.toInt(),
+        title = this.audioName, // provide a way to get the title
+        audioCreated = this.audioCreated,
+        audioSize = this.audioSize,
+        audioFavorite = this.audioFavorite
+    )
+}
