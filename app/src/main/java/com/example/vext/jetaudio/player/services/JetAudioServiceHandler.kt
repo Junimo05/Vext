@@ -88,6 +88,11 @@ class JetAudioServiceHandler @Inject constructor(
             Player.STATE_BUFFERING -> {
                 _audioState.value = JetAudioState.Buffering(exoPlayer.currentPosition)
             }
+            Player.STATE_ENDED -> {
+                exoPlayer.seekToDefaultPosition(exoPlayer.currentMediaItemIndex)
+                exoPlayer.pause()
+                stopProgressUpdate()
+            }
         }
     }
 
@@ -95,7 +100,8 @@ class JetAudioServiceHandler @Inject constructor(
         super.onMediaItemTransition(mediaItem, reason)
         if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO){
             exoPlayer.seekToDefaultPosition(exoPlayer.currentMediaItemIndex)
-            _audioState.value = JetAudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
+            exoPlayer.pause()
+            stopProgressUpdate()
         }
     }
 

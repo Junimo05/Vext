@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,9 +41,13 @@ fun SelectionModeTopAppBar(
     context: Context,
     selectedItems: SnapshotStateList<Audio>,
     resetSelectionMode: () -> Unit,
+    updateNameAudio: (String, Audio) -> Unit,
     deleteAudio: (List<Audio>) -> Unit,
 ){
     var showConfirmMenu by remember {
+        mutableStateOf(false)
+    }
+    var showEditName by remember {
         mutableStateOf(false)
     }
     var isDropDownVisible by remember {
@@ -107,6 +112,20 @@ fun SelectionModeTopAppBar(
                             )
                         },
                     )
+                    if(selectedItems.size == 1){
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "Edit Name",
+                                )
+                            },
+                            onClick = {
+                                isDropDownVisible = false
+                                //Edit Name
+                                showEditName = true
+                            }
+                        )
+                    }
                     DropdownMenuItem(
                         text = {
                             Text(
@@ -123,6 +142,7 @@ fun SelectionModeTopAppBar(
                             )
                         },
                     )
+
                 }
             }
         },
@@ -148,6 +168,22 @@ fun SelectionModeTopAppBar(
             resetSelectionMode()
             showConfirmMenu = false
         }
+    }
+
+    //Edit Name Dialog
+    if (showEditName) {
+        EditNameDialog(
+            oldName = selectedItems[0].displayName,
+            confirm = {
+                updateNameAudio(it, selectedItems[0])
+                resetSelectionMode()
+            },
+            dismiss = {
+                showEditName = false
+                resetSelectionMode()
+            }
+        )
+
     }
 }
 
@@ -182,4 +218,47 @@ fun alertCheck(
         }
     )
     return result
+}
+
+@Composable
+fun EditNameDialog(
+    oldName: String,
+    confirm: (String) -> Unit,
+    dismiss: () -> Unit,
+    modifier: Modifier = Modifier
+){
+    var name by remember {
+        mutableStateOf(oldName)
+    }
+    AlertDialog(
+        onDismissRequest = { },
+        title = {
+            Text(text = "Edit Name")
+        },
+        text = {
+                TextField(
+                value = name,
+                onValueChange = {name = it},
+                placeholder = { Text("Enter Name") },
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    confirm(name)
+                }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    dismiss()
+                }
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
 }

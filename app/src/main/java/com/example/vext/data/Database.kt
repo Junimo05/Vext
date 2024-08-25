@@ -18,9 +18,11 @@ import com.example.vext.data.local.entity.AudioDes
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
-        AutoMigration(from = 3, to = 4, spec = AppDatabase.Migrate3to4::class)
+        AutoMigration(from = 3, to = 4, spec = AppDatabase.Migrate3to4::class),
     ]
 )
+
+
 abstract class AppDatabase : RoomDatabase(
 
 ) {

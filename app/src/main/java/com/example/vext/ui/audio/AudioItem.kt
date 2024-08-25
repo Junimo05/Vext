@@ -1,6 +1,5 @@
 package com.example.vext.ui.audio
 
-import android.widget.Space
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -63,12 +62,13 @@ fun AudioItem(
                 verticalAlignment = Alignment.CenterVertically,
             ){
                 Icon(
-                    imageVector = if(!isAudioPlaying) Icons.Default.PlayArrow else Icons.Default.Pause,
+                    imageVector = if(isAudioPlaying && audio == currentPlayingAudio) Icons.Default.Pause
+                    else Icons.Default.PlayArrow,
                     contentDescription = null,
                     modifier = Modifier.clickable {
-                        if(!isAudioPlaying){
+                        if(audio != currentPlayingAudio){
                             onAudioClick(index)
-                        }else {
+                        } else {
                             onStart()
                         }
                     }

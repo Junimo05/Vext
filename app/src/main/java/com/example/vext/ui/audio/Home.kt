@@ -2,6 +2,7 @@ package com.example.vext.ui.audio
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -94,6 +95,7 @@ fun Home(
     isAudioPlaying: Boolean,
     currentPlayingAudio: Audio,
     audioList: List<Audio>,
+    updateNameAudio: (String, Audio) -> Unit,
     deleteAudio: (Audio) -> Unit,
     onStart: () -> Unit,
     onAudioClick:(Int) -> Unit,
@@ -135,11 +137,12 @@ fun Home(
                          context = context,
                          selectedItems = selectedItems,
                          resetSelectionMode = resetSelectionMode,
+                         updateNameAudio = updateNameAudio,
                          deleteAudio = { items ->
                              items.forEach { item ->
                                     deleteAudio(item)
                              }
-                         }
+                         },
                      )
                  }else {
                      Box(

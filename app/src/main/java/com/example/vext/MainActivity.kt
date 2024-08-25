@@ -87,12 +87,16 @@ class MainActivity : ComponentActivity() {
                                 onNext = {
                                     audioViewModel.onUIEvents(UIEvents.SeekToNext)
                                 },
+                                updateNameAudio = { name, audio ->
+                                    audioViewModel.updateName(name, audio)
+                                },
                                 context = LocalContext.current,
                             )
                         }
 
                         composable("record") {
                             RecordScreen(
+                                context = LocalContext.current,
                                 navController = navController,
                                 recorder = audioViewModel.recorder,
                                 saveLocalData = {audioViewModel.onRecordEvents(RecordEvents.SaveRecordingToLocal(it))}

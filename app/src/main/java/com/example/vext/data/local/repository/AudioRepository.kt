@@ -1,6 +1,7 @@
 package com.example.vext.data.local.repository
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.vext.data.local.entity.AudioDes
@@ -80,6 +81,15 @@ class AudioRepository @Inject constructor(
         }catch (ex: Exception){
             ex.printStackTrace()
             Log.e(TAG, "deleteAllDataAudioError: ${ex.message}")
+        }
+    }
+
+    suspend fun updateAudioName(audioId: Int, filename: String) = withContext(Dispatchers.IO){
+        try {
+            audioLocalService.updateAudioName(audioId, filename)
+        }catch (ex: Exception){
+            ex.printStackTrace()
+            Log.e(TAG, "updateAudioNameError: ${ex.message}")
         }
     }
 

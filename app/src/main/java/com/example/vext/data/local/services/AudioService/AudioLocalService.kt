@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import com.example.vext.data.AudioDao
@@ -102,7 +103,7 @@ class AudioLocalService @Inject constructor(
             }
         }
 
-    //Database Getting
+    //Database
     suspend fun getAllAudioData() = audioDao.getAllAudio()
 
     suspend fun getAudioById(id: Int) = audioDao.getAudio(id)
@@ -112,5 +113,7 @@ class AudioLocalService @Inject constructor(
     suspend fun deleteAllAudioData() = audioDao.deleteAllAudio()
 
     suspend fun insertAudio(audio: AudioDes) = audioDao.insertAudio(audio)
+
+    suspend fun updateAudioName(id: Int, filename: String) = audioDao.updateAudioName(id, filename)
 
 }

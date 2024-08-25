@@ -25,6 +25,8 @@ import com.example.vext.jetaudio.player.services.JetAudioServiceHandler
 import com.example.vext.jetaudio.player.services.JetAudioState
 import com.example.vext.jetaudio.player.services.PlayerEvent
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
+import com.example.vext.utils.Pref
+import com.example.vext.utils.renameFile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +46,7 @@ private val audioDummy = Audio(
 class AudioViewModel @Inject constructor(
     private val audioServiceHandler: JetAudioServiceHandler,
     private val repository: AudioRepository,
+    private val pref: Pref,
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -110,6 +113,7 @@ class AudioViewModel @Inject constructor(
     fun loadAudioData() {
         viewModelScope.launch {
             val audio = repository.getLocalAudioFiles() //get data
+            pref.save("audioListCount", audio.size)
             audioList = audio
             setMediaItems()
             if(contentObserver == null) {
@@ -117,8 +121,16 @@ class AudioViewModel @Inject constructor(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
                 ) {
                     loadAudioData()
+                    pref.save("audioListCount", audio.size)
                 }
             }
+        }
+    }
+
+    fun updateName(newName: String, audio: Audio) {
+        viewModelScope.launch {
+            renameFile(context, audio.uri, newName)
+            repository.updateAudioName(audio.id.toInt(), newName)
         }
     }
 

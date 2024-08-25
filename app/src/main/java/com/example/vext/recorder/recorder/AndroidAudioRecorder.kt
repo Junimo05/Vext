@@ -11,9 +11,7 @@ import android.provider.MediaStore
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.net.toUri
 import com.example.vext.data.local.entity.AudioDes
-import com.example.vext.utils.checkAudioNameExistsInMediaStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -111,7 +109,6 @@ class AndroidAudioRecorder @Inject constructor(
         timerHandler.stop()
         recordingTime.longValue = timerHandler.milliseconds
         recorder?.stop()
-        recorder?.reset()
         tempFile.delete()
         recorder = null
     }
@@ -128,13 +125,13 @@ class AndroidAudioRecorder @Inject constructor(
         recorder?.resume()
     }
     private fun saveRecordingFile(filename: String){
-        val uniqueFilename = generateUniqueFileName(filename)
+//        val uniqueFilename = generateUniqueFileName(filename)
         val audioUri = saveAudioFile(filename)
         createdTime = System.currentTimeMillis()
         savePath = audioUri.toString()
         fileSize = tempFile.length()
-        this.filename = uniqueFilename
-        saveAmplitudesToFile(this.filename)
+        this.filename = filename
+//        saveAmplitudesToFile(this.filename)
         tempFile.delete()
     }
 
@@ -183,12 +180,13 @@ class AndroidAudioRecorder @Inject constructor(
         )
     }
 
-   fun clearRecorder(){
+    fun clearRecorder(){
         filename = ""
         savePath = ""
         createdTime = 0L
         fileSize = 0L
         amplitudes.clear()
+        timerHandler.clear()
         recorder?.reset()
         recorder = null
     }
@@ -216,16 +214,15 @@ class AndroidAudioRecorder @Inject constructor(
         file.writeText(amplitudes.joinToString(","))
     }
 
-    private fun generateUniqueFileName(originalName: String): String {
-        var uniqueName = originalName
-        var counter = 1
-
-        while (checkAudioNameExistsInMediaStore(context, uniqueName)) {
-            uniqueName = "$originalName(${counter++})"
-        }
-
-        return uniqueName
-    }
+//    private fun generateUniqueFileName(originalName: String): String {
+//        var uniqueName = originalName
+//        var counter = 1
+//
+//        while (checkAudioNameExistsInMediaStore(context, uniqueName)) {
+//            uniqueName = "$originalName (${counter++})"
+//        }
+//        return uniqueName
+//    }
 
     private fun copyStream(input: InputStream, output: OutputStream?) {
         val buffer = ByteArray(1024)
@@ -260,6 +257,9 @@ class TimerHandler {
 
     fun stop() {
         handler.removeCallbacks(runnable)
+    }
+
+    fun clear(){
         milliseconds = 0L
     }
 }

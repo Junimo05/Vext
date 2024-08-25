@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.vext.data.local.entity.AudioDes
 import com.example.vext.recorder.recorder.AndroidAudioRecorder
+import com.example.vext.utils.Pref
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,11 +52,14 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun RecordScreen(
+    context: Context,
     recorder: AndroidAudioRecorder,
     navController: NavController,
     saveLocalData: (AudioDes) -> Unit
 ) {
     //Record State
+
+    val pref = Pref(context)
 
     var showAlertDialog by rememberSaveable {
         mutableStateOf(false)
@@ -164,6 +168,7 @@ fun RecordScreen(
         //Save file
         if(showAlertDialog){
             StopAlertDialog(
+                pref = pref,
                 onSaveRequest = {filename ->
                     showAlertDialog = false
                     recorder.isRecording.value = false
@@ -213,11 +218,13 @@ fun Timer(
 
 @Composable
 fun StopAlertDialog(
+    pref: Pref,
     onDismissRequest: () -> Unit,
     onSaveRequest: (String)-> Unit
 ){
+    val count = pref.getInt("audioListCount", 0)
     val fileName = rememberSaveable {
-        mutableStateOf("AudioFile")
+        mutableStateOf("AudioFile $count")
     }
     AlertDialog(
         onDismissRequest = { onDismissRequest() },
@@ -233,7 +240,6 @@ fun StopAlertDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    fileName.value += ".mp3"
                     onSaveRequest(fileName.value)
                 }
             ) {

@@ -1,5 +1,6 @@
 package com.example.vext.data
 
+import android.net.Uri
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -21,6 +22,16 @@ interface AudioDao {
     @Query("SELECT * FROM audio WHERE audio_removed != 0")
     suspend fun getRemovedAudio(): List<AudioDes>
 
+
+    //Update
+    @Query("UPDATE audio SET audio_removed = :removed WHERE id = :id")
+    suspend fun addAudioRemoved(id: Int, removed: Long)
+
+    @Query("UPDATE audio SET audio_bookmarked = :favorite WHERE id = :id")
+    suspend fun addAudioFavorite(id: Int, favorite: Boolean)
+
+    @Query("UPDATE audio SET audio_name = :filename WHERE id = :id")
+    suspend fun updateAudioName(id: Int, filename: String)
 
     //Delete
     @Query("DELETE FROM audio WHERE id = :id")
